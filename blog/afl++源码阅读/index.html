@@ -62,7 +62,7 @@
       "datePublished": "2020-11-08 09:51:26 \u002b0800 CST",
       "dateModified" : "2020-11-08 09:51:26 \u002b0800 CST",
       "url" : "https:\/\/gitbug404.github.io\/blog\/afl\u002b\u002b%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB\/",
-      "wordCount" : "0",
+      "wordCount" : "433",
       "keywords" : ["Blog"]
     }
   
@@ -109,6 +109,287 @@
           </header>
           <article class="post__content">
               
+<h1 id="前言">前言</h1>
+<p>模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、honggfuzz等操作简单友好的工具相继出现，也极大地降低了模糊测试的门槛。</p>
+<p>基于工程实践的要求，我需要对afl进行源码阅读，需要了解afl的实现细节，借此blog记录对源码的理解。</p>
+<p>在这里我选择阅读 aflplusplus源码，降低入门门槛，希望能够粗略理解afl具体做了什么。同时，AFLplusplus，引进了更强的编译算法，如果是源码插桩的方式，更适合使用 AFLplusplus。</p>
+<h1 id="afl白皮书">AFL白皮书</h1>
+<p>参考https://www.jianshu.com/p/cc7a486e5adb</p>
+<p>想要搞清楚AFL到底干了什么，直接看源码肯定是一头扎进深潭，无源死水，所以还是先看懂原理，从afl白皮书入手。在这之前，还是得了解一下测试中的一些术语。</p>
+<h5 id="插桩instrumentation">插桩(instrumentation)</h5>
+<p>它是在保证被测程序原有逻辑完整性的基础上在程序中插入一些[探针]（又称为“探测仪”，本质上就是进行信息采集的代码段，可以是[赋值语句]或采集覆盖信息的[函数调用]），通过[探针]的执行并抛出程序运行的[特征]数据（方法本身、方法参数值、返回值等），通过对这些数据的分析，可以获得程序的控制流和数据流信息，进而得到逻辑覆盖等动态信息，从而实现测试目的方法。</p>
+<p>果我们想要了解一个程序在某次运行中可执行语句被覆盖的情况，或是每个语句的实际执行次数，最好的办法就是利用插装技术。</p>
+<p><strong>最简单的插桩：在程序中插入打印语句printf(“ &hellip;”)语句。</strong></p>
+<p>1.插桩位置：a.程序的第一条语句；b.分支语句的开始；c.循环语句的开始；d.下一个入口语句之前的语句；e.程序的结束语句；f.分支语句的结束；g.循环语句的结束。</p>
+<p>2.插桩策略：</p>
+<p>①语句覆盖探针（基本块探针）：在基本块的入口和出口处，分别植入相应的探针，以确定程序执行时该基本块是否被覆盖。　</p>
+<p>②分支覆盖探针：c/c++语言中，分支由分支点确定。对于每个分支，在其开始处植入一个相应的探针，以确定程序执行时该分支是否被覆盖。　</p>
+<p>③条件覆盖探针：c/c++语言中，if, swich,while, do-while, for 几种语法结构都支持条件判定，在每个条件表达式的布尔表达式处植入探针，进行变量跟踪取值，以确定其被覆盖情况。</p>
+<h4 id="代码覆盖code-coverage">代码覆盖（Code coverage）</h4>
+<p>是软件测试中的一种度量，描述程式中源代码被测试的比例和程度，所得比例称为代码覆盖率。</p>
+<h3 id="afl的工作流程">AFL的工作流程<a class="anchor" href="#afl的工作流程">#</a></h3>
+<p>①从源码编译程序时进行插桩，以记录代码覆盖率（Code Coverage）；</p>
+<p>②选择一些输入文件，作为初始测试集加入输入队列（queue）；</p>
+<p>③将队列中的文件按一定的策略进行“突变”；</p>
+<p>④如果经过变异文件更新了覆盖范围，则将其保留添加到队列中;</p>
+<p>⑤上述过程会一直循环进行，期间触发了crash的文件会被记录下来</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/14301043-e6e971f8f57cf91a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h3 id="1-覆盖率计算coverage-measurements">1. 覆盖率计算(Coverage measurements)<a class="anchor" href="#1-覆盖率计算coverage-measurements">#</a></h3>
+<p>通过在编译程序中注入插桩(instrumentation)来捕获分支(边缘)覆盖率，并且还能检测到粗略的分支执行命中次数(branch-taken hit counts)。在分支点注入的代码大致如下：</p>
+<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+shared_mem[cur_location ^ prev_location]++; 
+prev_location = cur_location &gt;&gt; 1;
+</code></pre>
+<p>我们把路径定义为tuples</p>
+<pre><code>A -&gt; B -&gt; C -&gt; D -&gt; E (tuples: AB, BC, CD, DE)
+A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
+</code></pre>
+<ul>
+<li>
+<p><code>cur_location</code>:随机生成，以简化链接复杂项目的过程并保持XOR输出均匀分布。</p>
+</li>
+<li>
+<p><code>shared_mem</code>: 调用者(caller)传给被插桩的二进制程序(passed to the instrumented binary)的64kB的共享存储空间。<br><strong>在输出映射中设置的每个字节都可以视为命中检测代码中的特定（branch_src，branch_dst）元组</strong>。<br><br>
+也就是说shared_mem记录了从A-&gt;B路径的次数，同时也能区分上述两条A-&gt;E是不同的路径。<br><br>
+选择这个数组大小的原因是让冲突(collisions)尽可能减少。这样通常能处理2k到10k的分支点。同时，它的大小也足以达到毫秒级的分析。</p>
+<table>
+<thead>
+<tr>
+<th>Branch cnt</th>
+<th>Colliding tuples</th>
+<th>Example targets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,000</td>
+<td>0.75%</td>
+<td>giflib, lzo</td>
+</tr>
+<tr>
+<td>2,000</td>
+<td>1.5%</td>
+<td>zlib, tar, xz</td>
+</tr>
+<tr>
+<td>5,000</td>
+<td>3.5%</td>
+<td>libpng, libwebp</td>
+</tr>
+<tr>
+<td>10,000</td>
+<td>7%</td>
+<td>libxml</td>
+</tr>
+<tr>
+<td>20,000</td>
+<td>14%</td>
+<td>sqlite</td>
+</tr>
+<tr>
+<td>50,000</td>
+<td>30%</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p><code>prev_location</code>注意第一句话：“通过在编译程序中注入插桩(instrumentation)来捕获分支(边缘)覆盖率”。我们要找的是分支，也就是代码块A-&gt;B-&gt;C&hellip;的路径，但是A-&gt;B和B-&gt;A是不一样的路径。<br><br>
+最后一行的左移操作就是为了让tuples有定向性，否则AB和BA就没有了区别。</p>
+</li>
+</ul>
+<h2 id="2-发现新路径">2. 发现新路径<a class="anchor" href="#2-发现新路径">#</a></h2>
+<p>AFL的fuzzer维护一个全局的Map来存储之前执行时看到的tuple。这些数据可以被用来对不同的trace进行快速比较和更新，从而可以计算出是否新执行了一个dword指令/一个qword-wide指令/一个简单的循环（缺乏前景知识有点难理解）。</p>
+<p>再来复习一下afl工作流程</p>
+<blockquote>
+<p>①从源码编译程序时进行插桩，以记录代码覆盖率（Code Coverage）；<br>
+②选择一些输入文件，作为初始测试集加入输入队列（queue）；<br>
+③将队列中的文件按一定的策略进行“突变”；<br>
+④如果经过变异文件更新了覆盖范围，则将其保留添加到队列中;<br>
+⑤上述过程会一直循环进行，期间触发了crash的文件会被记录下来</p>
+</blockquote>
+<p>afl通过输入文件的突变产生新路径(新tuples),当一个变异的输入产生了一个包含<strong>新tuple的执行路径</strong>时，对应的输入文件就被<strong>保存</strong>，这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。对于那些<strong>没有产生新路径的输入</strong>，就算他们的路径是不同的，也会被<strong>抛弃</strong>掉。</p>
+<p>考虑下面两个路径,第二个路径出现了新的tuples(CA, AE):</p>
+<pre><code class="language-html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
+#2: A -&gt; B -&gt; C -&gt; A -&gt; E
+</code></pre>
+<p>再来看一条路径# 3</p>
+<pre><code class="language-html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
+</code></pre>
+<p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
+<p>因为只出现了AB BC CD DE CA AE这几个tuple。</p>
+<p>除了检测新的tuple之外，AFL的fuzzer也会粗略地记录tuple的<strong>命中数(hit counts)</strong>。这些被分割成几个buckets：</p>
+<pre><code>1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+
+</code></pre>
+<p>buckets里面的数字是一个8-bit counter和一个8-position bitmap的映射。一个8-bit counter和一个8-position bitmap的映射。（很难理解）</p>
+<p>先下结论：<strong>从一个bucket变成另一个bucket才是重要的。</strong></p>
+<p>从一个bucket到另一个bucket 会被标记被程序流中的一个有趣的变化(interesting change)，传入到输入队列的进化过程里【也就是步骤4的部分】。而单个bucket的改变就被忽略掉，不管了。</p>
+<p>通过命中次数(hit count)，我们能够分辨控制流是否发生变化。例如一个代码块被执行了两次，但只命中了一次。并且这种方法对循环的次数不敏感(循环47次和48次没区别)。</p>
+<h2 id="3--输入队列的进化evolving-the-input-queue">3.  输入队列的进化(Evolving the input queue)<a class="anchor" href="#3--输入队列的进化evolving-the-input-queue">#</a></h2>
+<p>变异测试用例(Mutated test cases)是能够产生新的语句转移(即新的tuple)的测试用例。这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。它们作为已有测试用例的补充，但并不替换掉已有测试用例。</p>
+<p>白皮书贴了张图来说明上述算法的作用
+<a href="http://lcamtuf.coredump.cx/afl/afl_gzip.png">http://lcamtuf.coredump.cx/afl/afl_gzip.png</a></p>
+<p>与更贪婪的遗传算法相反，此方法允许该工具逐步探索基础数据格式的各种不相交和可能相互不兼容的特征</p>
+<p>在(使用算法)过程中生成的语料库是那些“有用的”输入的集合，这个语料库可以直接给其他测试过程当做seed(例如，手动对一些desktop apps进行压力测试)。</p>
+<p>使用这种算法，大多数目标程序的输入队列会到1k到10k。其中，大约10-30%是发现的新tuple，剩下的都是和命中次数(hit count)的改变有关。</p>
+<p>白皮书3、4节讲的比较晦涩。3、4、5节联系比较紧密，索性用更直白的方式描述4、5节。</p>
+<h2 id="4-语料筛选与修剪culling-the-corpus-and-trimming-input-files">4. 语料筛选与修剪（Culling the corpus and Trimming input files)<a class="anchor" href="#4-语料筛选与修剪culling-the-corpus-and-trimming-input-files">#</a></h2>
+<h4 id="语料库">语料库</h4>
+<p>我的理解就是初始输入集。必须确保语料库尽可能多地覆盖目标代码，也就是<strong>让程序执行不同的路径</strong>，因为这增加了在其中发现bug的机会。此外，必须避免语料库中的冗余，以便每个测试用例触发目标的独特行为。</p>
+<p>AFL需要一些初始输入数据（也叫种子文件）作为Fuzzing的起点，这些输入甚至可以是毫无意义的数据，AFL可以通过启发式算法自动确定文件格式结构。lcamtuf就在博客中给出了一个有趣的<a href="https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>例子</a>
+——对djpeg进行Fuzzing时，仅用一个字符串”hello”作为输入，最后凭空生成大量jpge图像！</p>
+<p>尽管AFL如此强大，但如果要获得更快的Fuzzing速度，那么就有必要生成一个高质量的语料库。</p>
+<h4 id="1-选择语料库的原则">1. 选择语料库的原则</h4>
+<p>(1) 有效的输入
+尽管有时候无效输入会产生bug和崩溃，但有效输入可以更快的找到更多执行路径。</p>
+<p>(2) 尽量小的体积
+较小的文件会不仅可以减少测试和处理的时间，也能节约更多的内存，AFL给出的建议是最好小于1 KB，但其实可以根据自己测试的程序权衡，这在AFL文档的perf_tips.txt中有具体说明。</p>
+<h3 id="2-寻找语料库">2. 寻找语料库<a class="anchor" href="#2-寻找语料库">#</a></h3>
+<ol>
+<li>使用项目自身提供的测试用例</li>
+<li>目标程序bug提交页面</li>
+<li>使用格式转换器，用从现有的文件格式生成一些不容易找到的文件格式：</li>
+<li>afl源码的testcases目录下提供了一些测试用例</li>
+<li>其他大型的语料库</li>
+<li><a href="http://lcamtuf.coredump.cx/afl/demo/" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>afl generated image test sets</a>
+</li>
+<li><a href="https://github.com/google/fuzzer-test-suite" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>fuzzer-test-suite</a>
+</li>
+<li><a href="https://samples.libav.org/" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>libav samples</a>
+</li>
+<li><a href="http://samples.ffmpeg.org/" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>ffmpeg samples</a>
+</li>
+<li><a href="https://github.com/MozillaSecurity/fuzzdata" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>fuzzdata</a>
+</li>
+<li><a href="https://gitlab.anu.edu.au/lunar/moonshine" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>moonshine</a>
+</li>
+</ol>
+<h3 id="3-输入文件修剪">3. 输入文件修剪<a class="anchor" href="#3-输入文件修剪">#</a></h3>
+<p><strong>语料库蒸馏（Corpus Distillation）</strong></p>
+<p>核心思想是首先收集大量有效的输入。然后，对于每个输入，测量基本块的代码覆盖，如果输入仅触发先前输入已经访问过的基本块，则将其从集合中移除。</p>
+<p>为了优化fuzzing，AFL会用一个快速算法周期性的重新评估(re-evaluates)队列，这种算法会选择队列的一个更小的子集，并且这个子集仍能覆盖所有的tuple。</p>
+<p>同时白皮书的第四第五节提到了两个工具afl-cmin和afl-tmin
+一个用来移除执行相同代码的输入文件——AFL-CMIN
+一个用来减小单个输入文件的大小——AFL-TMIN</p>
+<h4 id="afl-cmin">afl-cmin</h4>
+<p>使用afl-cmin工具能够对输入或输出的语料库进行稍微复杂但慢得多的的处理，
+可以精简语料库，去掉可能重复的测试用例，针对一些复杂的语料库十分有用，可大大减少无用的 fuzz 用例。产生适用于afl-fuzz或者外部工具的更小的语料库</p>
+<p>afl-cmin的核心思想是：尝试找到与语料库全集具有相同覆盖范围的最小子集。举个例子：假设有多个文件，都覆盖了相同的代码，那么就丢掉多余的文件。</p>
+<h4 id="afl-tmin">afl-tmin</h4>
+<p>afl-tmin工具减小<strong>单个文件</strong>的大小，对每个文件进行更细化的处理，因为 afl 要求测试用例的大小最好小于 1KB，因此最好将精简后的用例进一步缩小体积。</p>
+<h2 id="5-模糊测试策略fuzzing-strategies">5. 模糊测试策略(Fuzzing strategies)<a class="anchor" href="#5-模糊测试策略fuzzing-strategies">#</a></h2>
+<p>值得注意的是，尤其是在早期，afl-fuzz所做的大部分工作实际上都是高度确定性(highly deterministic)的，并且仅在后期才进行到随机堆叠的修改(random stacked modifications)和测试用例的拼接(test case splicing)【读到这里就一堆问号了】</p>
+<p>确定性策略包括。</p>
+<ul>
+<li>使用变化的长度和步距(lengths and stepovers)来连续(sequential)进行位反转。</li>
+<li>对小的整型数(small integers)来连续进行加法和减法。</li>
+<li>对已知的interesting integers(例如 0,1，INT_MAX等)连续地插入。</li>
+</ul>
+<p>使用这些确定步骤的目的在于，生成紧凑的(compact)测试用例，以及在产生non-crashing的输入和产生crashing的输入之间，有很小的差异(small diffs)。</p>
+<p>我的理解是这里说的是对输入数据的改变一开始是一点一点变化的，因为一开始的时候比较容易找到大部分的分支，后面找那些隐藏的比较深的比较难得可能就用上比较复杂的非确定性的策略。</p>
+<p>非确定性(non-deterministic)策略的步骤包括：stacked bit flips、插入(insertions)、删除(deletions)、算数(arithmetics)和不同测试用例之间的接片(splicing)。</p>
+<hr>
+<h2 id="再后面的就是更加晦涩的内容对初入门的人来说更难理解就此打住">再后面的就是更加晦涩的内容，对初入门的人来说更难理解，就此打住。<a class="anchor" href="#再后面的就是更加晦涩的内容对初入门的人来说更难理解就此打住">#</a></h2>
+<h2 id="afl">AFL++<a class="anchor" href="#afl">#</a></h2>
+<p>参考http://rk700.github.io/2017/12/28/afl-internals/
+AFL++源码有很多个文件，上来一看头就很大了，但其命名也是很有规律的，有些过于底层的我们必要去细究，理解了重要的再说。</p>
+<pre><code>afl-analyze.c
+afl-as.c
+afl-cc.c
+afl-common.c
+afl-forkserver.c
+afl-fuzz-bitmap.c
+afl-fuzz-cmplog.c
+afl-fuzz-extras.c
+afl-fuzz-init.c
+afl-fuzz-mutators.c
+afl-fuzz-one.c
+afl-fuzz-python.c
+afl-fuzz-queue.c
+afl-fuzz-redqueen.c
+afl-fuzz-run.c
+afl-fuzz-state.c
+afl-fuzz-stats.c
+afl-fuzz-statsd.c
+afl-fuzz.c
+afl-gotcpu.c
+afl-ld-lto.c
+afl-performance.c
+afl-sharedmem.c
+afl-showmap.c
+afl-tmin.c
+README.md
+</code></pre>
+<h4 id="afl-as">afl-as</h4>
+<p>as是汇编器assembler的缩写，那afl-as.c就应该是和汇编有关的了。</p>
+<p>如果了解编译过程，那么就知道把源代码编译成二进制，主要是经过”源代码”-&gt;”汇编代码”-&gt;”二进制”这样的过程。而将汇编代码编译成为二进制的工具，即为汇编器assembler。Linux系统下的常用汇编器是as。不过，编译完成AFL后，在其目录下也会存在一个as文件，并作为符号链接指向afl-as。所以，如果通过-B选项为gcc设置了搜索路径，那么afl-as便会作为汇编器，执行实际的汇编操作。</p>
+<p>所以，AFL的代码插桩，就是在将源文件编译为汇编代码后，通过afl-as完成。</p>
+<p>接下来，我们继续阅读文件afl-as.c。其大致逻辑是处理汇编代码，在分支处插入桩代码，并最终再调用as进行真正的汇编。</p>
+<p>afl-as.c就是关于插桩的代码，定位到295行</p>
+<pre><code>   295   fprintf(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,
+              R(MAP_SIZE));
+</code></pre>
+<p>这里通过fprintf()将格式化字符串添加到汇编文件的相应位置。
+R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的一个随机数。也就是之前白皮书里我们分析过的那行伪代码!</p>
+<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+</code></pre>
+<p>那MAP_SIZE是多少？我们share_mem的容量是64kB,所以MAP_SIZE是64k。</p>
+<p><code>use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</code>应该是看机器（不一定是，我猜的）是不是使用64位，不是就用32位的情况</p>
+<pre><code>static const u8 *trampoline_fmt_32 =
+
+    &quot;\n&quot;
+    &quot;/* --- AFL TRAMPOLINE (32-BIT) --- */\n&quot;
+    &quot;\n&quot;
+    &quot;.align 4\n&quot;
+    &quot;\n&quot;
+    &quot;leal -16(%%esp), %%esp\n&quot;
+    &quot;movl %%edi,  0(%%esp)\n&quot;
+    &quot;movl %%edx,  4(%%esp)\n&quot;
+    &quot;movl %%ecx,  8(%%esp)\n&quot;
+    &quot;movl %%eax, 12(%%esp)\n&quot;
+    &quot;movl $0x%08x, %%ecx\n&quot;
+    &quot;call __afl_maybe_log\n&quot;
+    &quot;movl 12(%%esp), %%eax\n&quot;
+    &quot;movl  8(%%esp), %%ecx\n&quot;
+    &quot;movl  4(%%esp), %%edx\n&quot;
+    &quot;movl  0(%%esp), %%edi\n&quot;
+    &quot;leal 16(%%esp), %%esp\n&quot;
+    &quot;\n&quot;
+    &quot;/* --- END --- */\n&quot;
+    &quot;\n&quot;;
+</code></pre>
+<p>这一段汇编代码，主要的操作是：</p>
+<ul>
+<li>保存edi等寄存器</li>
+<li>将ecx的值设置为fprintf()所要打印的变量内容</li>
+<li>调用方法__afl_maybe_log()</li>
+<li>恢复寄存器</li>
+</ul>
+<p>这里我们只分析<code>&quot;movl $0x%08x, %%ecx\n&quot;</code>这条指令
+<code>__afl_maybe_log</code>是插桩代码所执行的实际内容，会在接下来详细展开，</p>
+<p>因此，在处理到某个分支，需要插入桩代码时，afl-as会生成一个随机数，作为运行时保存在ecx中的值。而这个随机数，便是用于标识这个代码块的key。</p>
 
 
               
