@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 
 <head>
-  <title>Afl&#43;&#43;源码阅读 | Even - A super concise theme for Hugo</title>
+  <title>Afl&#43;&#43;源码阅读 | codex</title>
 
   <meta charset="UTF-8">
   <meta name="language" content="en">
@@ -46,7 +46,7 @@
       "@type" : "BlogPosting",
       "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "http:\/\/gitbug404.github.io\/"
+            "@id": "https:\/\/gitbug404.github.io\/"
       },
       "articleSection" : "blog",
       "name" : "Afl\u002b\u002b源码阅读",
@@ -61,8 +61,8 @@
       "copyrightYear" : "2020",
       "datePublished": "2020-11-08 09:51:26 \u002b0800 CST",
       "dateModified" : "2020-11-08 09:51:26 \u002b0800 CST",
-      "url" : "http:\/\/gitbug404.github.io\/blog\/afl\u002b\u002b%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB\/",
-      "wordCount" : "5980",
+      "url" : "https:\/\/gitbug404.github.io\/blog\/afl\u002b\u002b%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB\/",
+      "wordCount" : "433",
       "keywords" : ["Blog"]
     }
   
@@ -136,30 +136,15 @@
 <p><img src="https://upload-images.jianshu.io/upload_images/14301043-e6e971f8f57cf91a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
 <h3 id="1-覆盖率计算coverage-measurements">1. 覆盖率计算(Coverage measurements)<a class="anchor" href="#1-覆盖率计算coverage-measurements">#</a></h3>
 <p>通过在编译程序中注入插桩(instrumentation)来捕获分支(边缘)覆盖率，并且还能检测到粗略的分支执行命中次数(branch-taken hit counts)。在分支点注入的代码大致如下：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
 shared_mem[cur_location ^ prev_location]++; 
 prev_location = cur_location &gt;&gt; 1;
-</code></pre></td></tr></table>
-</div>
-</div><p>我们把路径定义为tuples</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">A -&gt; B -&gt; C -&gt; D -&gt; E (tuples: AB, BC, CD, DE)
+</code></pre>
+<p>我们把路径定义为tuples</p>
+<pre><code>A -&gt; B -&gt; C -&gt; D -&gt; E (tuples: AB, BC, CD, DE)
 A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
-</code></pre></td></tr></table>
-</div>
-</div><ul>
+</code></pre>
+<ul>
 <li>
 <p><code>cur_location</code>:随机生成，以简化链接复杂项目的过程并保持XOR输出均匀分布。</p>
 </li>
@@ -226,37 +211,18 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 </blockquote>
 <p>afl通过输入文件的突变产生新路径(新tuples),当一个变异的输入产生了一个包含<strong>新tuple的执行路径</strong>时，对应的输入文件就被<strong>保存</strong>，这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。对于那些<strong>没有产生新路径的输入</strong>，就算他们的路径是不同的，也会被<strong>抛弃</strong>掉。</p>
 <p>考虑下面两个路径,第二个路径出现了新的tuples(CA, AE):</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-html" data-lang="html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
+<pre><code class="language-html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
 #2: A -&gt; B -&gt; C -&gt; A -&gt; E
-</code></pre></td></tr></table>
-</div>
-</div><p>再来看一条路径# 3</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-html" data-lang="html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
-</code></pre></td></tr></table>
-</div>
-</div><p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
+</code></pre>
+<p>再来看一条路径# 3</p>
+<pre><code class="language-html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
+</code></pre>
+<p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
 <p>因为只出现了AB BC CD DE CA AE这几个tuple。</p>
 <p>除了检测新的tuple之外，AFL的fuzzer也会粗略地记录tuple的<strong>命中数(hit counts)</strong>。这些被分割成几个buckets：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+
-</code></pre></td></tr></table>
-</div>
-</div><p>buckets里面的数字是一个8-bit counter和一个8-position bitmap的映射。一个8-bit counter和一个8-position bitmap的映射。（很难理解）</p>
+<pre><code>1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+
+</code></pre>
+<p>buckets里面的数字是一个8-bit counter和一个8-position bitmap的映射。一个8-bit counter和一个8-position bitmap的映射。（很难理解）</p>
 <p>先下结论：<strong>从一个bucket变成另一个bucket才是重要的。</strong></p>
 <p>从一个bucket到另一个bucket 会被标记被程序流中的一个有趣的变化(interesting change)，传入到输入队列的进化过程里【也就是步骤4的部分】。而单个bucket的改变就被忽略掉，不管了。</p>
 <p>通过命中次数(hit count)，我们能够分辨控制流是否发生变化。例如一个代码块被执行了两次，但只命中了一次。并且这种方法对循环的次数不敏感(循环47次和48次没区别)。</p>
@@ -350,37 +316,7 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 <h2 id="afl">AFL++<a class="anchor" href="#afl">#</a></h2>
 <p>参考http://rk700.github.io/2017/12/28/afl-internals/
 AFL++源码有很多个文件，上来一看头就很大了，但其命名也是很有规律的，有些过于底层的我们必要去细究，理解了重要的再说。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">afl-analyze.c
+<pre><code>afl-analyze.c
 afl-as.c
 afl-cc.c
 afl-common.c
@@ -406,87 +342,46 @@ afl-sharedmem.c
 afl-showmap.c
 afl-tmin.c
 README.md
-</code></pre></td></tr></table>
-</div>
-</div><h4 id="afl-as">afl-as</h4>
+</code></pre>
+<h4 id="afl-as">afl-as</h4>
 <p>as是汇编器assembler的缩写，那afl-as.c就应该是和汇编有关的了。</p>
 <p>如果了解编译过程，那么就知道把源代码编译成二进制，主要是经过”源代码”-&gt;”汇编代码”-&gt;”二进制”这样的过程。而将汇编代码编译成为二进制的工具，即为汇编器assembler。Linux系统下的常用汇编器是as。不过，编译完成AFL后，在其目录下也会存在一个as文件，并作为符号链接指向afl-as。所以，如果通过-B选项为gcc设置了搜索路径，那么afl-as便会作为汇编器，执行实际的汇编操作。</p>
 <p>所以，AFL的代码插桩，就是在将源文件编译为汇编代码后，通过afl-as完成。</p>
 <p>接下来，我们继续阅读文件afl-as.c。其大致逻辑是处理汇编代码，在分支处插入桩代码，并最终再调用as进行真正的汇编。</p>
 <p>afl-as.c就是关于插桩的代码，定位到295行</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">   295   fprintf(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,
+<pre><code>   295   fprintf(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,
               R(MAP_SIZE));
-</code></pre></td></tr></table>
-</div>
-</div><p>这里通过fprintf()将格式化字符串添加到汇编文件的相应位置。
+</code></pre>
+<p>这里通过fprintf()将格式化字符串添加到汇编文件的相应位置。
 R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的一个随机数。也就是之前白皮书里我们分析过的那行伪代码!</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
-</code></pre></td></tr></table>
-</div>
-</div><p>那MAP_SIZE是多少？我们share_mem的容量是64kB,所以MAP_SIZE是64k。</p>
+<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+</code></pre>
+<p>那MAP_SIZE是多少？我们share_mem的容量是64kB,所以MAP_SIZE是64k。</p>
 <p><code>use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</code>应该是看机器（不一定是，我猜的）是不是使用64位，不是就用32位的情况</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">static const u8 *trampoline_fmt_32 =
+<pre><code>static const u8 *trampoline_fmt_32 =
 
-    &#34;\n&#34;
-    &#34;/* --- AFL TRAMPOLINE (32-BIT) --- */\n&#34;
-    &#34;\n&#34;
-    &#34;.align 4\n&#34;
-    &#34;\n&#34;
-    &#34;leal -16(%%esp), %%esp\n&#34;
-    &#34;movl %%edi,  0(%%esp)\n&#34;
-    &#34;movl %%edx,  4(%%esp)\n&#34;
-    &#34;movl %%ecx,  8(%%esp)\n&#34;
-    &#34;movl %%eax, 12(%%esp)\n&#34;
-    &#34;movl $0x%08x, %%ecx\n&#34;
-    &#34;call __afl_maybe_log\n&#34;
-    &#34;movl 12(%%esp), %%eax\n&#34;
-    &#34;movl  8(%%esp), %%ecx\n&#34;
-    &#34;movl  4(%%esp), %%edx\n&#34;
-    &#34;movl  0(%%esp), %%edi\n&#34;
-    &#34;leal 16(%%esp), %%esp\n&#34;
-    &#34;\n&#34;
-    &#34;/* --- END --- */\n&#34;
-    &#34;\n&#34;;
-</code></pre></td></tr></table>
-</div>
-</div><p>这一段汇编代码，主要的操作是：</p>
+    &quot;\n&quot;
+    &quot;/* --- AFL TRAMPOLINE (32-BIT) --- */\n&quot;
+    &quot;\n&quot;
+    &quot;.align 4\n&quot;
+    &quot;\n&quot;
+    &quot;leal -16(%%esp), %%esp\n&quot;
+    &quot;movl %%edi,  0(%%esp)\n&quot;
+    &quot;movl %%edx,  4(%%esp)\n&quot;
+    &quot;movl %%ecx,  8(%%esp)\n&quot;
+    &quot;movl %%eax, 12(%%esp)\n&quot;
+    &quot;movl $0x%08x, %%ecx\n&quot;
+    &quot;call __afl_maybe_log\n&quot;
+    &quot;movl 12(%%esp), %%eax\n&quot;
+    &quot;movl  8(%%esp), %%ecx\n&quot;
+    &quot;movl  4(%%esp), %%edx\n&quot;
+    &quot;movl  0(%%esp), %%edi\n&quot;
+    &quot;leal 16(%%esp), %%esp\n&quot;
+    &quot;\n&quot;
+    &quot;/* --- END --- */\n&quot;
+    &quot;\n&quot;;
+</code></pre>
+<p>这一段汇编代码，主要的操作是：</p>
 <ul>
 <li>保存edi等寄存器</li>
 <li>将ecx的值设置为fprintf()所要打印的变量内容</li>
@@ -505,7 +400,7 @@ R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的�
 <ul class="tags__list">
     
     <li class="tag__item">
-        <a class="tag__link" href="http://gitbug404.github.io/tags/afl&#43;&#43;/">afl&#43;&#43;</a>
+        <a class="tag__link" href="https://gitbug404.github.io/tags/afl&#43;&#43;/">afl&#43;&#43;</a>
     </li></ul>
 
  <div class="pagination">
@@ -523,31 +418,16 @@ R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的�
   
      
     
-  
-     
-    
-  
-     
-    
-  
-     
-    
-  
-     
-    
-  
-     
-    
-  
-     
-    
-  
-     
+      <a class="social-icons__link" rel="me" title="GitHub"
+         href="https://github.com/gitbug404"
+         target="_blank" rel="noopener">
+        <div class="social-icons__icon" style="background-image: url('https://gitbug404.github.io/svg/github.svg')"></div>
+      </a>
     
      
 </div>
 
-            <p></p>
+            <p>© 2020</p>
           </footer>
           </div>
       </div>
