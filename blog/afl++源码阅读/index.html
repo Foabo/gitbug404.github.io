@@ -1,115 +1,124 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-
 <head>
-  <title>Afl&#43;&#43;源码阅读 | codex</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Afl&#43;&#43;源码阅读 - Even - A super concise theme for Hugo</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
-  <meta charset="UTF-8">
-  <meta name="language" content="en">
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-  
-  
-
-  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-  
-  
-    
- 
-  
-  
-  
-  
-  
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/post.min.b60e0932fe1c50c3d7c5b4f83ee9e4592363654d0f2abf05bbd0678d5b8a214c.css" integrity="sha256-tg4JMv4cUMPXxbT4PunkWSNjZU0PKr8Fu9BnjVuKIUw="/>
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
-  
-  
-   
-   
-    
+<meta name="author" content="GitBug404" /><meta name="description" content="前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、" /><meta name="keywords" content="Hugo, theme, even" />
 
-<script type="application/ld+json">
-  
-    {
-      "@context" : "http://schema.org",
-      "@type" : "BlogPosting",
-      "mainEntityOfPage": {
-            "@type": "WebPage",
-            "@id": "https:\/\/gitbug404.github.io\/"
-      },
-      "articleSection" : "blog",
-      "name" : "Afl\u002b\u002b源码阅读",
-      "headline" : "Afl\u002b\u002b源码阅读",
-      "description" : "",
-      "inLanguage" : "en-US",
-      "author" : "",
-      "creator" : "",
-      "publisher": "",
-      "accountablePerson" : "",
-      "copyrightHolder" : "",
-      "copyrightYear" : "2020",
-      "datePublished": "2020-11-08 09:51:26 \u002b0800 CST",
-      "dateModified" : "2020-11-08 09:51:26 \u002b0800 CST",
-      "url" : "https:\/\/gitbug404.github.io\/blog\/afl\u002b\u002b%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB\/",
-      "wordCount" : "433",
-      "keywords" : ["Blog"]
-    }
-  
-  </script>
+
+
+
+
+
+<meta name="generator" content="Hugo 0.75.1 with theme even" />
+
+
+<link rel="canonical" href="http://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.c7bc1becf36bcf6a9ebd25d2947e43a2eb745ddb0c9a32b43126fd7fa460c351.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="Afl&#43;&#43;源码阅读" />
+<meta property="og:description" content="前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" />
+<meta property="article:published_time" content="2020-11-08T09:51:26+08:00" />
+<meta property="article:modified_time" content="2020-11-08T09:51:26+08:00" />
+<meta itemprop="name" content="Afl&#43;&#43;源码阅读">
+<meta itemprop="description" content="前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、">
+<meta itemprop="datePublished" content="2020-11-08T09:51:26+08:00" />
+<meta itemprop="dateModified" content="2020-11-08T09:51:26+08:00" />
+<meta itemprop="wordCount" content="5980">
+
+
+
+<meta itemprop="keywords" content="afl&#43;&#43;," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Afl&#43;&#43;源码阅读"/>
+<meta name="twitter:description" content="前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
 </head>
-
 <body>
-  <div class="burger__container">
-  <div class="burger" aria-controls="navigation" aria-label="Menu">
-    <div class="burger__meat burger__meat--1"></div>
-    <div class="burger__meat burger__meat--2"></div>
-    <div class="burger__meat burger__meat--3"></div>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Even</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
   </div>
 </div>
- 
-
-  <nav class="nav" id="navigation">
-  <ul class="nav__list">
-    
-    
-      <li>
-        <a  href="/">about</a>
-      </li>
-    
-      <li>
-        <a  class="active"
-         href="/blog">blog</a>
-      </li>
-    
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a>
   </ul>
 </nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Even</a>
+</div>
 
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li>
+  </ul>
+</nav>
+    </header>
 
-  <main>
-    
-    
-
-    <div class="flex-wrapper">
-      <div class="post__container">
-        <div class="post">
-          <header class="post__header">
-            <h1 id="post__title">Afl&#43;&#43;源码阅读</h1>
-            <time datetime="2020-11-08 09:51:26 &#43;0800 CST" class="post__date">Nov 8 2020</time> 
-          </header>
-          <article class="post__content">
-              
-<h1 id="前言">前言</h1>
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+  <div class="post-content">
+    <h1 id="前言">前言</h1>
 <p>模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、honggfuzz等操作简单友好的工具相继出现，也极大地降低了模糊测试的门槛。</p>
 <p>基于工程实践的要求，我需要对afl进行源码阅读，需要了解afl的实现细节，借此blog记录对源码的理解。</p>
 <p>在这里我选择阅读 aflplusplus源码，降低入门门槛，希望能够粗略理解afl具体做了什么。同时，AFLplusplus，引进了更强的编译算法，如果是源码插桩的方式，更适合使用 AFLplusplus。</p>
@@ -127,24 +136,39 @@
 <p>③条件覆盖探针：c/c++语言中，if, swich,while, do-while, for 几种语法结构都支持条件判定，在每个条件表达式的布尔表达式处植入探针，进行变量跟踪取值，以确定其被覆盖情况。</p>
 <h4 id="代码覆盖code-coverage">代码覆盖（Code coverage）</h4>
 <p>是软件测试中的一种度量，描述程式中源代码被测试的比例和程度，所得比例称为代码覆盖率。</p>
-<h3 id="afl的工作流程">AFL的工作流程<a class="anchor" href="#afl的工作流程">#</a></h3>
+<h3 id="afl的工作流程">AFL的工作流程</h3>
 <p>①从源码编译程序时进行插桩，以记录代码覆盖率（Code Coverage）；</p>
 <p>②选择一些输入文件，作为初始测试集加入输入队列（queue）；</p>
 <p>③将队列中的文件按一定的策略进行“突变”；</p>
 <p>④如果经过变异文件更新了覆盖范围，则将其保留添加到队列中;</p>
 <p>⑤上述过程会一直循环进行，期间触发了crash的文件会被记录下来</p>
 <p><img src="https://upload-images.jianshu.io/upload_images/14301043-e6e971f8f57cf91a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<h3 id="1-覆盖率计算coverage-measurements">1. 覆盖率计算(Coverage measurements)<a class="anchor" href="#1-覆盖率计算coverage-measurements">#</a></h3>
+<h3 id="1-覆盖率计算coverage-measurements">1. 覆盖率计算(Coverage measurements)</h3>
 <p>通过在编译程序中注入插桩(instrumentation)来捕获分支(边缘)覆盖率，并且还能检测到粗略的分支执行命中次数(branch-taken hit counts)。在分支点注入的代码大致如下：</p>
-<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
 shared_mem[cur_location ^ prev_location]++; 
 prev_location = cur_location &gt;&gt; 1;
-</code></pre>
-<p>我们把路径定义为tuples</p>
-<pre><code>A -&gt; B -&gt; C -&gt; D -&gt; E (tuples: AB, BC, CD, DE)
+</code></pre></td></tr></table>
+</div>
+</div><p>我们把路径定义为tuples</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">A -&gt; B -&gt; C -&gt; D -&gt; E (tuples: AB, BC, CD, DE)
 A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
-</code></pre>
-<ul>
+</code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>
 <p><code>cur_location</code>:随机生成，以简化链接复杂项目的过程并保持XOR输出均匀分布。</p>
 </li>
@@ -199,7 +223,7 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 最后一行的左移操作就是为了让tuples有定向性，否则AB和BA就没有了区别。</p>
 </li>
 </ul>
-<h2 id="2-发现新路径">2. 发现新路径<a class="anchor" href="#2-发现新路径">#</a></h2>
+<h2 id="2-发现新路径">2. 发现新路径</h2>
 <p>AFL的fuzzer维护一个全局的Map来存储之前执行时看到的tuple。这些数据可以被用来对不同的trace进行快速比较和更新，从而可以计算出是否新执行了一个dword指令/一个qword-wide指令/一个简单的循环（缺乏前景知识有点难理解）。</p>
 <p>再来复习一下afl工作流程</p>
 <blockquote>
@@ -211,22 +235,41 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 </blockquote>
 <p>afl通过输入文件的突变产生新路径(新tuples),当一个变异的输入产生了一个包含<strong>新tuple的执行路径</strong>时，对应的输入文件就被<strong>保存</strong>，这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。对于那些<strong>没有产生新路径的输入</strong>，就算他们的路径是不同的，也会被<strong>抛弃</strong>掉。</p>
 <p>考虑下面两个路径,第二个路径出现了新的tuples(CA, AE):</p>
-<pre><code class="language-html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
 #2: A -&gt; B -&gt; C -&gt; A -&gt; E
-</code></pre>
-<p>再来看一条路径# 3</p>
-<pre><code class="language-html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
-</code></pre>
-<p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
+</code></pre></td></tr></table>
+</div>
+</div><p>再来看一条路径# 3</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
+</code></pre></td></tr></table>
+</div>
+</div><p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
 <p>因为只出现了AB BC CD DE CA AE这几个tuple。</p>
 <p>除了检测新的tuple之外，AFL的fuzzer也会粗略地记录tuple的<strong>命中数(hit counts)</strong>。这些被分割成几个buckets：</p>
-<pre><code>1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+
-</code></pre>
-<p>buckets里面的数字是一个8-bit counter和一个8-position bitmap的映射。一个8-bit counter和一个8-position bitmap的映射。（很难理解）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+
+</code></pre></td></tr></table>
+</div>
+</div><p>buckets里面的数字是一个8-bit counter和一个8-position bitmap的映射。一个8-bit counter和一个8-position bitmap的映射。（很难理解）</p>
 <p>先下结论：<strong>从一个bucket变成另一个bucket才是重要的。</strong></p>
 <p>从一个bucket到另一个bucket 会被标记被程序流中的一个有趣的变化(interesting change)，传入到输入队列的进化过程里【也就是步骤4的部分】。而单个bucket的改变就被忽略掉，不管了。</p>
 <p>通过命中次数(hit count)，我们能够分辨控制流是否发生变化。例如一个代码块被执行了两次，但只命中了一次。并且这种方法对循环的次数不敏感(循环47次和48次没区别)。</p>
-<h2 id="3--输入队列的进化evolving-the-input-queue">3.  输入队列的进化(Evolving the input queue)<a class="anchor" href="#3--输入队列的进化evolving-the-input-queue">#</a></h2>
+<h2 id="3--输入队列的进化evolving-the-input-queue">3.  输入队列的进化(Evolving the input queue)</h2>
 <p>变异测试用例(Mutated test cases)是能够产生新的语句转移(即新的tuple)的测试用例。这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。它们作为已有测试用例的补充，但并不替换掉已有测试用例。</p>
 <p>白皮书贴了张图来说明上述算法的作用
 <a href="http://lcamtuf.coredump.cx/afl/afl_gzip.png">http://lcamtuf.coredump.cx/afl/afl_gzip.png</a></p>
@@ -234,59 +277,31 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 <p>在(使用算法)过程中生成的语料库是那些“有用的”输入的集合，这个语料库可以直接给其他测试过程当做seed(例如，手动对一些desktop apps进行压力测试)。</p>
 <p>使用这种算法，大多数目标程序的输入队列会到1k到10k。其中，大约10-30%是发现的新tuple，剩下的都是和命中次数(hit count)的改变有关。</p>
 <p>白皮书3、4节讲的比较晦涩。3、4、5节联系比较紧密，索性用更直白的方式描述4、5节。</p>
-<h2 id="4-语料筛选与修剪culling-the-corpus-and-trimming-input-files">4. 语料筛选与修剪（Culling the corpus and Trimming input files)<a class="anchor" href="#4-语料筛选与修剪culling-the-corpus-and-trimming-input-files">#</a></h2>
+<h2 id="4-语料筛选与修剪culling-the-corpus-and-trimming-input-files">4. 语料筛选与修剪（Culling the corpus and Trimming input files)</h2>
 <h4 id="语料库">语料库</h4>
 <p>我的理解就是初始输入集。必须确保语料库尽可能多地覆盖目标代码，也就是<strong>让程序执行不同的路径</strong>，因为这增加了在其中发现bug的机会。此外，必须避免语料库中的冗余，以便每个测试用例触发目标的独特行为。</p>
-<p>AFL需要一些初始输入数据（也叫种子文件）作为Fuzzing的起点，这些输入甚至可以是毫无意义的数据，AFL可以通过启发式算法自动确定文件格式结构。lcamtuf就在博客中给出了一个有趣的<a href="https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html" 
-  
-   target="_blank" rel="noreferrer noopener" 
->例子</a>
-——对djpeg进行Fuzzing时，仅用一个字符串”hello”作为输入，最后凭空生成大量jpge图像！</p>
+<p>AFL需要一些初始输入数据（也叫种子文件）作为Fuzzing的起点，这些输入甚至可以是毫无意义的数据，AFL可以通过启发式算法自动确定文件格式结构。lcamtuf就在博客中给出了一个有趣的<a href="https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html">例子</a>——对djpeg进行Fuzzing时，仅用一个字符串”hello”作为输入，最后凭空生成大量jpge图像！</p>
 <p>尽管AFL如此强大，但如果要获得更快的Fuzzing速度，那么就有必要生成一个高质量的语料库。</p>
 <h4 id="1-选择语料库的原则">1. 选择语料库的原则</h4>
 <p>(1) 有效的输入
 尽管有时候无效输入会产生bug和崩溃，但有效输入可以更快的找到更多执行路径。</p>
 <p>(2) 尽量小的体积
 较小的文件会不仅可以减少测试和处理的时间，也能节约更多的内存，AFL给出的建议是最好小于1 KB，但其实可以根据自己测试的程序权衡，这在AFL文档的perf_tips.txt中有具体说明。</p>
-<h3 id="2-寻找语料库">2. 寻找语料库<a class="anchor" href="#2-寻找语料库">#</a></h3>
+<h3 id="2-寻找语料库">2. 寻找语料库</h3>
 <ol>
 <li>使用项目自身提供的测试用例</li>
 <li>目标程序bug提交页面</li>
 <li>使用格式转换器，用从现有的文件格式生成一些不容易找到的文件格式：</li>
 <li>afl源码的testcases目录下提供了一些测试用例</li>
 <li>其他大型的语料库</li>
-<li><a href="http://lcamtuf.coredump.cx/afl/demo/" 
-  
-   target="_blank" rel="noreferrer noopener" 
->afl generated image test sets</a>
-</li>
-<li><a href="https://github.com/google/fuzzer-test-suite" 
-  
-   target="_blank" rel="noreferrer noopener" 
->fuzzer-test-suite</a>
-</li>
-<li><a href="https://samples.libav.org/" 
-  
-   target="_blank" rel="noreferrer noopener" 
->libav samples</a>
-</li>
-<li><a href="http://samples.ffmpeg.org/" 
-  
-   target="_blank" rel="noreferrer noopener" 
->ffmpeg samples</a>
-</li>
-<li><a href="https://github.com/MozillaSecurity/fuzzdata" 
-  
-   target="_blank" rel="noreferrer noopener" 
->fuzzdata</a>
-</li>
-<li><a href="https://gitlab.anu.edu.au/lunar/moonshine" 
-  
-   target="_blank" rel="noreferrer noopener" 
->moonshine</a>
-</li>
+<li><a href="http://lcamtuf.coredump.cx/afl/demo/">afl generated image test sets</a></li>
+<li><a href="https://github.com/google/fuzzer-test-suite">fuzzer-test-suite</a></li>
+<li><a href="https://samples.libav.org/">libav samples</a></li>
+<li><a href="http://samples.ffmpeg.org/">ffmpeg samples</a></li>
+<li><a href="https://github.com/MozillaSecurity/fuzzdata">fuzzdata</a></li>
+<li><a href="https://gitlab.anu.edu.au/lunar/moonshine">moonshine</a></li>
 </ol>
-<h3 id="3-输入文件修剪">3. 输入文件修剪<a class="anchor" href="#3-输入文件修剪">#</a></h3>
+<h3 id="3-输入文件修剪">3. 输入文件修剪</h3>
 <p><strong>语料库蒸馏（Corpus Distillation）</strong></p>
 <p>核心思想是首先收集大量有效的输入。然后，对于每个输入，测量基本块的代码覆盖，如果输入仅触发先前输入已经访问过的基本块，则将其从集合中移除。</p>
 <p>为了优化fuzzing，AFL会用一个快速算法周期性的重新评估(re-evaluates)队列，这种算法会选择队列的一个更小的子集，并且这个子集仍能覆盖所有的tuple。</p>
@@ -299,7 +314,7 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 <p>afl-cmin的核心思想是：尝试找到与语料库全集具有相同覆盖范围的最小子集。举个例子：假设有多个文件，都覆盖了相同的代码，那么就丢掉多余的文件。</p>
 <h4 id="afl-tmin">afl-tmin</h4>
 <p>afl-tmin工具减小<strong>单个文件</strong>的大小，对每个文件进行更细化的处理，因为 afl 要求测试用例的大小最好小于 1KB，因此最好将精简后的用例进一步缩小体积。</p>
-<h2 id="5-模糊测试策略fuzzing-strategies">5. 模糊测试策略(Fuzzing strategies)<a class="anchor" href="#5-模糊测试策略fuzzing-strategies">#</a></h2>
+<h2 id="5-模糊测试策略fuzzing-strategies">5. 模糊测试策略(Fuzzing strategies)</h2>
 <p>值得注意的是，尤其是在早期，afl-fuzz所做的大部分工作实际上都是高度确定性(highly deterministic)的，并且仅在后期才进行到随机堆叠的修改(random stacked modifications)和测试用例的拼接(test case splicing)【读到这里就一堆问号了】</p>
 <p>确定性策略包括。</p>
 <ul>
@@ -313,10 +328,40 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 <hr>
 <p>再后面的就是更加晦涩的内容，对初入门的人来说更难理解，就此打住。</p>
 <hr>
-<h2 id="afl">AFL++<a class="anchor" href="#afl">#</a></h2>
+<h2 id="afl">AFL++</h2>
 <p>参考http://rk700.github.io/2017/12/28/afl-internals/
 AFL++源码有很多个文件，上来一看头就很大了，但其命名也是很有规律的，有些过于底层的我们必要去细究，理解了重要的再说。</p>
-<pre><code>afl-analyze.c
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">afl-analyze.c
 afl-as.c
 afl-cc.c
 afl-common.c
@@ -342,46 +387,87 @@ afl-sharedmem.c
 afl-showmap.c
 afl-tmin.c
 README.md
-</code></pre>
-<h4 id="afl-as">afl-as</h4>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="afl-as">afl-as</h4>
 <p>as是汇编器assembler的缩写，那afl-as.c就应该是和汇编有关的了。</p>
 <p>如果了解编译过程，那么就知道把源代码编译成二进制，主要是经过”源代码”-&gt;”汇编代码”-&gt;”二进制”这样的过程。而将汇编代码编译成为二进制的工具，即为汇编器assembler。Linux系统下的常用汇编器是as。不过，编译完成AFL后，在其目录下也会存在一个as文件，并作为符号链接指向afl-as。所以，如果通过-B选项为gcc设置了搜索路径，那么afl-as便会作为汇编器，执行实际的汇编操作。</p>
 <p>所以，AFL的代码插桩，就是在将源文件编译为汇编代码后，通过afl-as完成。</p>
 <p>接下来，我们继续阅读文件afl-as.c。其大致逻辑是处理汇编代码，在分支处插入桩代码，并最终再调用as进行真正的汇编。</p>
 <p>afl-as.c就是关于插桩的代码，定位到295行</p>
-<pre><code>   295   fprintf(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">   295   fprintf(outf, use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,
               R(MAP_SIZE));
-</code></pre>
-<p>这里通过fprintf()将格式化字符串添加到汇编文件的相应位置。
+</code></pre></td></tr></table>
+</div>
+</div><p>这里通过fprintf()将格式化字符串添加到汇编文件的相应位置。
 R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的一个随机数。也就是之前白皮书里我们分析过的那行伪代码!</p>
-<pre><code>cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
-</code></pre>
-<p>那MAP_SIZE是多少？我们share_mem的容量是64kB,所以MAP_SIZE是64k。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">cur_location = &lt;COMPILE_TIME_RANDOM&gt;;
+</code></pre></td></tr></table>
+</div>
+</div><p>那MAP_SIZE是多少？我们share_mem的容量是64kB,所以MAP_SIZE是64k。</p>
 <p><code>use_64bit ? trampoline_fmt_64 : trampoline_fmt_32,</code>应该是看机器（不一定是，我猜的）是不是使用64位，不是就用32位的情况</p>
-<pre><code>static const u8 *trampoline_fmt_32 =
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">static const u8 *trampoline_fmt_32 =
 
-    &quot;\n&quot;
-    &quot;/* --- AFL TRAMPOLINE (32-BIT) --- */\n&quot;
-    &quot;\n&quot;
-    &quot;.align 4\n&quot;
-    &quot;\n&quot;
-    &quot;leal -16(%%esp), %%esp\n&quot;
-    &quot;movl %%edi,  0(%%esp)\n&quot;
-    &quot;movl %%edx,  4(%%esp)\n&quot;
-    &quot;movl %%ecx,  8(%%esp)\n&quot;
-    &quot;movl %%eax, 12(%%esp)\n&quot;
-    &quot;movl $0x%08x, %%ecx\n&quot;
-    &quot;call __afl_maybe_log\n&quot;
-    &quot;movl 12(%%esp), %%eax\n&quot;
-    &quot;movl  8(%%esp), %%ecx\n&quot;
-    &quot;movl  4(%%esp), %%edx\n&quot;
-    &quot;movl  0(%%esp), %%edi\n&quot;
-    &quot;leal 16(%%esp), %%esp\n&quot;
-    &quot;\n&quot;
-    &quot;/* --- END --- */\n&quot;
-    &quot;\n&quot;;
-</code></pre>
-<p>这一段汇编代码，主要的操作是：</p>
+    &#34;\n&#34;
+    &#34;/* --- AFL TRAMPOLINE (32-BIT) --- */\n&#34;
+    &#34;\n&#34;
+    &#34;.align 4\n&#34;
+    &#34;\n&#34;
+    &#34;leal -16(%%esp), %%esp\n&#34;
+    &#34;movl %%edi,  0(%%esp)\n&#34;
+    &#34;movl %%edx,  4(%%esp)\n&#34;
+    &#34;movl %%ecx,  8(%%esp)\n&#34;
+    &#34;movl %%eax, 12(%%esp)\n&#34;
+    &#34;movl $0x%08x, %%ecx\n&#34;
+    &#34;call __afl_maybe_log\n&#34;
+    &#34;movl 12(%%esp), %%eax\n&#34;
+    &#34;movl  8(%%esp), %%ecx\n&#34;
+    &#34;movl  4(%%esp), %%edx\n&#34;
+    &#34;movl  0(%%esp), %%edi\n&#34;
+    &#34;leal 16(%%esp), %%esp\n&#34;
+    &#34;\n&#34;
+    &#34;/* --- END --- */\n&#34;
+    &#34;\n&#34;;
+</code></pre></td></tr></table>
+</div>
+</div><p>这一段汇编代码，主要的操作是：</p>
 <ul>
 <li>保存edi等寄存器</li>
 <li>将ecx的值设置为fprintf()所要打印的变量内容</li>
@@ -392,66 +478,78 @@ R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的�
 <code>__afl_maybe_log</code>是插桩代码所执行的实际内容，会在接下来详细展开，</p>
 <p>因此，在处理到某个分支，需要插入桩代码时，afl-as会生成一个随机数，作为运行时保存在ecx中的值。而这个随机数，便是用于标识这个代码块的key。</p>
 
+  </div>
+</article>
+        </div>
+        
 
-              
-          </article>
-          
-
-<ul class="tags__list">
-    
-    <li class="tag__item">
-        <a class="tag__link" href="https://gitbug404.github.io/tags/afl&#43;&#43;/">afl&#43;&#43;</a>
-    </li></ul>
-
- <div class="pagination">
   
 
   
-</div>
 
-          
-          <footer class="post__footer">
-            
-
-
-<div class="social-icons">
-  
-     
-    
-      <a class="social-icons__link" rel="me" title="GitHub"
-         href="https://github.com/gitbug404"
-         target="_blank" rel="noopener">
-        <div class="social-icons__icon" style="background-image: url('https://gitbug404.github.io/svg/github.svg')"></div>
-      </a>
-    
-     
-</div>
-
-            <p>© 2020</p>
-          </footer>
-          </div>
       </div>
-      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:your@email.com" class="iconfont icon-email" title="email"></a>
+      <a href="http://localhost:1313" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+      <a href="http://localhost:1313" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="http://localhost:1313" class="iconfont icon-facebook" title="facebook"></a>
+      <a href="http://localhost:1313" class="iconfont icon-linkedin" title="linkedin"></a>
+      <a href="http://localhost:1313" class="iconfont icon-google" title="google"></a>
+      <a href="http://localhost:1313" class="iconfont icon-github" title="github"></a>
+      <a href="http://localhost:1313" class="iconfont icon-weibo" title="weibo"></a>
+      <a href="http://localhost:1313" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="http://localhost:1313" class="iconfont icon-douban" title="douban"></a>
+      <a href="http://localhost:1313" class="iconfont icon-pocket" title="pocket"></a>
+      <a href="http://localhost:1313" class="iconfont icon-tumblr" title="tumblr"></a>
+      <a href="http://localhost:1313" class="iconfont icon-instagram" title="instagram"></a>
+      <a href="http://localhost:1313" class="iconfont icon-gitlab" title="gitlab"></a>
+      <a href="http://localhost:1313" class="iconfont icon-bilibili" title="bilibili"></a>
+  <a href="http://gitbug404.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2020<span class="heart"><i class="iconfont icon-heart"></i></span><span>GitBug404</span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
     </div>
-    
-
-  </main>
-
-   
-
+  </div>
   
-  <script src="/js/index.min.49e4d8a384357d9b445b87371863419937ede9fa77737522ffb633073aebfa44.js" integrity="sha256-SeTYo4Q1fZtEW4c3GGNBmTft6fp3c3Ui/7YzBzrr&#43;kQ=" crossorigin="anonymous"></script>
-  
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
 
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
-    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
 
-  
+
+<script type="text/javascript" src="/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js"></script>
+
+
+
+
+
+
 
 
 </body>
-
 </html>

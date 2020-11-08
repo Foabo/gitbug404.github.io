@@ -1,39 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>codex</title>
-    <link>https://gitbug404.github.io/</link>
-    <description>Recent content on codex</description>
+    <title>Even - A super concise theme for Hugo</title>
+    <link>http://gitbug404.github.io/</link>
+    <description>Recent content on Even - A super concise theme for Hugo</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
-    <copyright>© {year}</copyright>
-    <lastBuildDate>Sun, 08 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="https://gitbug404.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language>
+    <lastBuildDate>Sun, 08 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="http://gitbug404.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Afl&#43;&#43;源码阅读</title>
-      <link>https://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</link>
+      <link>http://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</link>
       <pubDate>Sun, 08 Nov 2020 09:51:26 +0800</pubDate>
       
-      <guid>https://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</guid>
-      <description>前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、honggfuzz等操作简单友好的工具相继出现，也极大地降低了模糊测试的门槛。
-基于工程实践的要求，我需要对afl进行源码阅读，需要了解afl的实现细节，借此blog记录对源码的理解。
-在这里我选择阅读 aflplusplus源码，降低入门门槛，希望能够粗略理解afl具体做了什么。同时，AFLplusplus，引进了更强的编译算法，如果是源码插桩的方式，更适合使用 AFLplusplus。
-AFL白皮书 参考https://www.jianshu.com/p/cc7a486e5adb
-想要搞清楚AFL到底干了什么，直接看源码肯定是一头扎进深潭，无源死水，所以还是先看懂原理，从afl白皮书入手。在这之前，还是得了解一下测试中的一些术语。
-插桩(instrumentation) 它是在保证被测程序原有逻辑完整性的基础上在程序中插入一些[探针]（又称为“探测仪”，本质上就是进行信息采集的代码段，可以是[赋值语句]或采集覆盖信息的[函数调用]），通过[探针]的执行并抛出程序运行的[特征]数据（方法本身、方法参数值、返回值等），通过对这些数据的分析，可以获得程序的控制流和数据流信息，进而得到逻辑覆盖等动态信息，从而实现测试目的方法。
-果我们想要了解一个程序在某次运行中可执行语句被覆盖的情况，或是每个语句的实际执行次数，最好的办法就是利用插装技术。
-最简单的插桩：在程序中插入打印语句printf(“ &amp;hellip;”)语句。
-1.插桩位置：a.程序的第一条语句；b.分支语句的开始；c.循环语句的开始；d.下一个入口语句之前的语句；e.程序的结束语句；f.分支语句的结束；g.循环语句的结束。
-2.插桩策略：
-①语句覆盖探针（基本块探针）：在基本块的入口和出口处，分别植入相应的探针，以确定程序执行时该基本块是否被覆盖。　②分支覆盖探针：c/c++语言中，分支由分支点确定。对于每个分支，在其开始处植入一个相应的探针，以确定程序执行时该分支是否被覆盖。　③条件覆盖探针：c/c++语言中，if, swich,while, do-while, for 几种语法结构都支持条件判定，在每个条件表达式的布尔表达式处植入探针，进行变量跟踪取值，以确定其被覆盖情况。
-代码覆盖（Code coverage） 是软件测试中的一种度量，描述程式中源代码被测试的比例和程度，所得比例称为代码覆盖率。
-AFL的工作流程 ①从源码编译程序时进行插桩，以记录代码覆盖率（Code Coverage）；
-②选择一些输入文件，作为初始测试集加入输入队列（queue）；
-③将队列中的文件按一定的策略进行“突变”；
-④如果经过变异文件更新了覆盖范围，则将其保留添加到队列中;
-⑤上述过程会一直循环进行，期间触发了crash的文件会被记录下来
-1. 覆盖率计算(Coverage measurements) 通过在编译程序中注入插桩(instrumentation)来捕获分支(边缘)覆盖率，并且还能检测到粗略的分支执行命中次数(branch-taken hit counts)。在分支点注入的代码大致如下：
-cur_location = &amp;lt;COMPILE_TIME_RANDOM&amp;gt;; shared_mem[cur_location ^ prev_location]++; prev_location = cur_location &amp;gt;&amp;gt; 1;  我们把路径定义为tuples
-A -&amp;gt; B -&amp;gt; C -&amp;gt; D -&amp;gt; E (tuples: AB, BC, CD, DE) A -&amp;gt; B -&amp;gt; D -&amp;gt; C -&amp;gt; E (tuples: AB, BD, DC, CE)    cur_location:随机生成，以简化链接复杂项目的过程并保持XOR输出均匀分布。</description>
+      <guid>http://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</guid>
+      <description>前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、</description>
     </item>
     
   </channel>
