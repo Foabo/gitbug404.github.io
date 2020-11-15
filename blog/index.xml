@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© abboo</copyright>
-    <lastBuildDate>Sun, 08 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="https://gitbug404.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 15 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="https://gitbug404.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The Go Memory Model翻译及理解</title>
+      <link>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</link>
+      <pubDate>Sun, 15 Nov 2020 09:51:26 +0800</pubDate>
+      
+      <guid>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</guid>
+      <description>The Go Memory Model [toc] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有</description>
+    </item>
+    
     <item>
       <title>Afl&#43;&#43;源码阅读</title>
       <link>https://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</link>
@@ -15,15 +24,6 @@
       
       <guid>https://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</guid>
       <description>前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</guid>
-      <description>The Go Memory Model [toc] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有</description>
     </item>
     
   </channel>

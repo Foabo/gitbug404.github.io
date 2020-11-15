@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© abboo</copyright>
-    <lastBuildDate>Sun, 08 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="https://gitbug404.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 15 Nov 2020 09:51:26 +0800</lastBuildDate><atom:link href="https://gitbug404.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go</title>
+      <link>https://gitbug404.github.io/tags/go/</link>
+      <pubDate>Sun, 15 Nov 2020 09:51:26 +0800</pubDate>
+      
+      <guid>https://gitbug404.github.io/tags/go/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>afl&#43;&#43;</title>
       <link>https://gitbug404.github.io/tags/afl&#43;&#43;/</link>
