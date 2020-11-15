@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title> - 加油吧，打工人！</title><meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta property="og:description" content="" />
+	<meta name="twitter:description" content="" />
+	<meta name="description" content="" />
+	<meta name="description" content="" />
+
+	<meta property="og:title" content=" | 加油吧，打工人！" />
+	<meta name="twitter:title" content=" | 加油吧，打工人！" />
+
+	<meta property="og:image" content=""/>
+	<meta itemprop="name" content=" | 加油吧，打工人！" />
+	<meta name="application-name" content=" | 加油吧，打工人！" />
+	<meta property="og:site_name" content="" />
+	<meta property="og:title" content="" />
+<meta property="og:description" content="The Go Memory Model [toc] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="The Go Memory Model [toc] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有"/>
+
+	<link href="https://gitbug404.github.io/css/fonts.css" rel="stylesheet">
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://gitbug404.github.io/css/main.css" />
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://gitbug404.github.io/">加油吧，打工人！</a>
+	</div>
+	<nav>
+		
+		<a href="/">home</a>
+		
+		<a href="/blog">blog</a>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title"></h1>
+			<div class="meta">Posted on Jan 1, 0001</div>
+		</div>
+		
+
+		<section class="body">
+			<h1 id="the-go-memory-model">The Go Memory Model</h1>
+<p>[toc]</p>
+<h2 id="前言">前言</h2>
+<p>最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章</p>
+<p>网上翻译也有一些，但是还是觉得不合自己口味，而且本身有些地方写的很拗口，不适合人读，命名简单的描述却复杂化了。所以我用自己的理解替换了一下原文的语句。</p>
+<p>运行这篇文章的代码的时候记得在main函数加time.Sleep(time.Second),时间由你决定</p>
+<p>goroutine 协程</p>
+<h2 id="介绍">介绍</h2>
+<p>Go内存模型指定了一种条件，在这种条件下，可以保证在一个goroutine中读取变量可以得到在不同goroutine中写入同一变量所产生的值。</p>
+<h2 id="建议">建议</h2>
+<p>如果程序想要修改由多个goroutine同时访问的数据，必须将这种访问串行化。</p>
+<p>要串行化访问，请使用通道操作或其他同步原语（例如sync和sync / atomic包中的原语）保护数据</p>
+<h2 id="先行发生-happens-before">先行发生 Happens Before</h2>
+<p>在单个goroutine中，读取和写入的行为必须像它们按照程序指定的顺序执行。也就是说，仅当重新排序不会改变语言规范所定义的该goroutine中的行为时，编译器和处理器才可以对单个goroutine中执行的读取和写入进行重新排序。由于此重新排序，一个goroutine观察到的执行顺序可能与另一个goroutine察觉到的执行顺序不同。例如，如果一个goroutine执行a = 1； b = 2；另一个协程可能会先看到b更新后的值，再看到a更新后的值，(b在a的前面)。</p>
+<p>为了指定读取和写入的要求，我们在Go程序中定义了执行内存操作之前的部分顺序。如果事件e1发生在事件e2之前，那么我们说e2发生在e1之后。同样，如果e1不在e2之前发生并且在e2之后也没有发生，那么我们说e1和e2同时发生。</p>
+<p>在单个goroutine中，先行发生的顺序是程序表示的顺序。</p>
+<p>如果对于一个变量 v 的读操作 r 和写操作 w 满足以下两个条件，r 就能观察到 w：</p>
+<ol>
+<li>r 没有发生在 w 之前</li>
+<li>w 之后 r 之前没有其他的写操作 w'</li>
+</ol>
+<p>为了保证变量 v 的一个读操作 r 能够观察到一个特定的写操作 w，需要保证 w 是 r 被允许观察(observe)的唯一的写操作。那么，如果 r、w 都满足以下条件，r 就能确保观察到 w：</p>
+<ol>
+<li>w 发生在 r 之前 w happens before r.</li>
+<li>对共享变量v的任何其他写操作都发生在w之前或r之后</li>
+</ol>
+<p>这一组条件要比前一组更健壮，因为它要求没有其他任何的写操作与 w 和 r 同时发生。</p>
+<p>在单个goroutine中，没有并发性，因此这两个定义是等效的：读操作 r 观察最近写操作w写入的变量 v 的值。当多个goroutine访问共享变量 v 时，它们必须通过同步事件来构建“先行发生”条件，确保读操作能观察到预期的写操作。</p>
+<p>用v的类型的零值初始化变量v的行为在内存模型中表现为写操作。</p>
+<p>大于单个机器字的值的读取和写入，将表现为多个机器字长大小的不具备特定顺序的读写操作。</p>
+<h2 id="同步">同步</h2>
+<p>###初始化
+程序初始化在单个goroutine中运行，但是该goroutine可能会创建其他同时运行的goroutine。</p>
+<p><strong>如果包p导入了包q，则q的init函数的完成会先发生在q的任意一个init函数开始之前。</strong></p>
+<p>函数main.main的启动发生在所有init函数完成之后。</p>
+<p>###协程创建
+<strong>启动新goroutine的go语句发生在该goroutine的执行开始之前。</strong></p>
+<p>例如，在此程序中：</p>
+<pre><code>func f() {
+    print(a)
+}
+
+func hello() {
+    a = &quot;hello, world&quot;
+    go f()
+}
+</code></pre>
+<p>调用hello方法将会在未来某个时间点(可能是hello返回之后)打印&quot;hello, world&quot;,也就是说执行f()的是一个go协程，和本hello中的语句不是顺序执行了。</p>
+<p>###协程销毁
+<strong>不能保证goroutine的退出会先发生在程序中任何事件之前。</strong>
+例如，在此程序中：</p>
+<pre><code>var a string
+
+func hello() {
+    go func() { a = &quot;hello&quot; }()
+    print(a)
+}
+</code></pre>
+<p>变量 a 的赋值语句后面没有任何同步事件，因此不能保证任何其他goroutine都会观察到它。实际上，一个激进(aggressive)的编译器可能会删除整个go语句。</p>
+<p>如果必须通过另一个goroutine来观察一个goroutine的影响，请使用同步机制（例如锁定或通道通信）来建立相对顺序</p>
+<h3 id="信道通信-channel-communication">信道通信 Channel communication</h3>
+<p>channel通信是goroutine之间同步的主要方法。通常在不同的goroutine中，将特定channel上的每个发送与该channel上的相应接收进行匹配。一进一出</p>
+<p><strong>有缓冲的channel</strong>
+缓冲Channel有点像生产者消费者，信道上先有东西，才能接收，不然接收语句就一直阻塞，发送者的阻塞只有队列满的时候才会发生，我们可以通过这种方实现同步。</p>
+<pre><code>var c = make(chan int, 10)
+var a string
+
+func f() {
+    a = &quot;hello, world&quot;
+    c &lt;- 0
+}
+
+func main() {
+    go f()
+    &lt;-c
+    print(a)
+}
+
+</code></pre>
+<p>上面这个程序保证了打印&quot;hello,world&quot;。对a的写操作发生在发送c(<code>c &lt;- 0</code>)之前，main中的语句<code>&lt;-c</code>会阻塞直到c中有数据,c中被写入0之后放行，执行print(a)语句。</p>
+<p>在前面的示例中，用close（c）替换c &lt;-0具有同样的效果。
+close(c)关闭信道，&lt;-c 这个语句会接收到0值。</p>
+<blockquote>
+<p>原文的意思就是close操作发生在接收操作之前。符合我们的直觉，但是像句废话</p>
+</blockquote>
+<p><strong>无缓冲的channel</strong>
+无缓冲的channel的有点不一样如果没有goroutine 读取接收者&lt;-ch ，那么发送者ch&lt;- 就会一直阻塞</p>
+<pre><code>var c = make(chan int)
+var a string
+
+func f() {
+    a = &quot;hello, world&quot;
+    &lt;-c
+}
+
+func main() {
+    go f()
+    c &lt;- 0
+    print(a)
+}
+</code></pre>
+<p>上面的程序（和前面的例程相似，但是交换了send和receive语句并使用了未缓冲的channel）
+也能确保打印出“hello, world”。一开始c&lt;-0会阻塞，直到有接收者接收信道 &lt;-c</p>
+<p>如果信道有缓冲区（比如：c = make(chan int, 1) ），那么这个程序就不能保证可以打印出“hello, world“（可能打印空字符串、程序崩溃或者做其他事）。</p>
+<p><strong>模拟限制并发</strong>
+先回顾原文</p>
+<blockquote>
+<p>The kth receive on a channel with capacity C happens before the k+Cth send from that channel completes.
+我们有一个缓冲区大小为 C 的channel,对这个channel的第k个接收操作，会先发生在k+C发生操作完成之前。假设容量为10，第1个接收操作先发生在第11个写操作之前，第2个接收操作发生在第12个写操作之前。
+感觉又像是一句废话，满了就写不了了！下面才的是重点</p>
+</blockquote>
+<p>这一条同时也概括了前面有缓冲区信道的规则。这样就可以用一个有缓冲信道来模拟可计数信号量：信道中元素的个数相当于当前活跃用户，信道容量相当于最大并发用户数，发送元素给信道相当于请求一个信号量，而接收就相当于释放。这是一种限制并发的惯用手段。
+以下程序对于 work 列表的每一个循环都会开启一个 Go 协程，但由于使用了 limit 信道进行调度，能够在同一时间最多只有三个 work 函数在运行。</p>
+<pre><code>var limit = make(chan int, 3)
+
+func main() {
+    for _, w := range work {
+        go func(w func()) {
+            limit &lt;- 1
+            w()
+            &lt;-limit
+        }(w)
+    }
+    select{}
+}
+</code></pre>
+<p>###锁
+sync 包实现了两种锁类型，sync.Mutex 和 sync.RWMutex。
+Mutex：互斥锁
+RWMutex：读写锁，RWMutex 基于 Mutex 实现
+Lock() 加锁，Unlock() 解锁，在RWMutex中是加写锁和解写锁
+RLock() 加读锁，RUnlock() 解读锁</p>
+<p>sync.Mutex 和 sync.RWMutex具体可以参考： <a href="https://www.jianshu.com/p/679041bdaa39">https://www.jianshu.com/p/679041bdaa39</a>
+特性还是蛮多的，看了对原文的解读会更深刻。因为原文写的很拗口。</p>
+<blockquote>
+<p>For any sync.Mutex or sync.RWMutex variable l and n &lt; m, call n of l.Unlock() happens before call m of l.Lock() returns.</p>
+</blockquote>
+<p>对于任意的sync.Mutex 或 sync.RWMutex 变量 l 并且 n &lt; m，对第 n 个 l.Unlock() 的的调用发生在第 m 个 l.Lock() 的返回之前。也就是说l的第一次解锁比第二次加锁要先执行。也就是说，使用 Lock() 加锁后，不能再继续对其加锁，直到利用 Unlock() 解锁后才能再加锁。
+例子：</p>
+<pre><code>var l sync.Mutex
+var a string
+
+func f() {
+    a = &quot;hello, world&quot;
+    l.Unlock()
+}
+
+func main() {
+    l.Lock()
+    go f()
+    l.Lock()
+    print(a)
+}
+</code></pre>
+<p>上面的程序能够确保打印出“hello, world”。我们先调用了l.Lock()，加了锁，第二次调用l.Lock()加第二把锁会阻塞，直到某个goroutine释放了这个锁。</p>
+<blockquote>
+<p>For any call to l.RLock on a sync.RWMutex variable l, there is an n such that the l.RLock happens (returns) after call n to l.Unlock and the matching l.RUnlock happens before call n+1 to l.Lock.</p>
+</blockquote>
+<p>一个 sync.RWMutex 变量 l，对于任何 l.RLock 的调用，存在一个 n，使得第 n 个 l.RLock 在第 n 个的 l.Unlock之后发生，同时该 RLock 所对应的 l.RUnlock 比于第 n+1 个 l.Lock先发生。
+简单理解就是我们给加锁和解锁分别定义一个序号，假设一个极端情况是一读一写，加了写锁之后，读锁得等这个写锁释放，读锁释放完，下一个写锁才能加。</p>
+<p>###Once
+sync 包通过使用 Once 类型，为多个goroutines进行初始化提供了一种安全的机制。对于一个特定的函数 f，可以用多个线程来调用 once.Do(f)，但只有一个线程会真正运行 f()，其他的调用则会阻塞直到 f() 返回。</p>
+<p>sync.Once 是 Golang package 中使方法只执行一次的对象实现，作用与 init 函数类似。但也有所不同。</p>
+<p>init 函数是在文件包首次被加载的时候执行，且只执行一次
+sync.Onc 是在代码运行中需要的时候执行，且只执行一次
+当一个函数不希望程序在一开始的时候就被执行的时候，我们可以使用 sync.Once 。</p>
+<pre><code>var a string
+var once sync.Once
+
+func setup() {
+    a = &quot;hello, world&quot;
+}
+
+func doprint() {
+    once.Do(setup)
+    print(a)
+}
+
+func twoprint() {
+    go doprint()
+    go doprint()
+}
+</code></pre>
+<p>上面的代码调用 twoprint 只会实际调用一次 setup。setup 函数会在任意一个 print 调用之前完成。这个once.Do(setup)只会在某个协程中执行一次。结果就是“hello, world”会被打印两次。</p>
+<blockquote>
+<p>我这里有时候啥都不打印，有时候只打印一次，没有出现打印两次的情况</p>
+</blockquote>
+<h2 id="错误的同步">错误的同步</h2>
+<p>注意到一个读操作 r 可能会观察到与 r 同时发生的写操作 w 写入的值。即使发生这种情况，也不意味着 在 r 之后的读操作能观察到 w 之前的写操作</p>
+<pre><code>var a, b int
+
+func f() {
+    a = 1
+    b = 2
+}
+
+func g() {
+    print(b)
+    print(a)
+}
+
+func main() {
+    go f()
+    g()
+}
+
+</code></pre>
+<p>g可能会先打印2，然后打印0。</p>
+<blockquote>
+<p>很神奇,但是我就打印了两个00，很难复现。</p>
+</blockquote>
+<p>这个事实会让一些常见的用法失效。</p>
+<p>双重检查加锁是一种尝试在同步中减少开销的方法。举个例子，twoprint 函数也可能会被错误地编写成下面的样子：</p>
+<pre><code>var a string
+var done bool
+
+func setup() {
+    a = &quot;hello, world&quot;
+    done = true
+}
+
+func doprint() {
+    if !done {
+        once.Do(setup)
+    }
+    print(a)
+}
+
+func twoprint() {
+    go doprint()
+    go doprint()
+}
+</code></pre>
+<p>但这并不能保证在 doprint 中，我们观察到 done 被修改意味着观察到 a 被修改。这个版本可能会不正确地打印出一个空字符串而不是“hello, world“。</p>
+<blockquote>
+<p>其实也就是说goroutine中赋值的顺序是不一定的，(只要两个值顺序没影响)。</p>
+</blockquote>
+<p>另外一种不正确的习惯用法是忙式等待（busy waiting）一个值，比如</p>
+<pre><code>var a string
+var done bool
+
+func setup() {
+    a = &quot;hello, world&quot;
+    done = true
+}
+
+func main() {
+    go setup()
+    for !done {
+    }
+    print(a)
+}
+</code></pre>
+<p>就像前一个例子一样，不能保证在 main 中，观察到 done 被修改意味着观察到 a 被修改，所以这个程序也可能会打印出空字符串。更糟糕的是，由于两个线程间没有同步事件，因此不能保证 done 的修改会被 main 观察到。main 中的循环也不一定能够结束。</p>
+<p>这个事情还能整一些比较微妙的变体，比如下面这个程序：</p>
+<pre><code>type T struct {
+    msg string
+}
+
+var g *T
+
+func setup() {
+    t := new(T)
+    t.msg = &quot;hello, world&quot;
+    g = t
+}
+
+func main() {
+    go setup()
+    for g == nil {
+    }
+    print(g.msg)
+}
+</code></pre>
+<p>即便 main 观察到 g != nil 然后结束了它的循环，也不能保证它能获得 g.msg 初始化得到的值。
+对于所有这些例子，解决方法都是相同的：使用显式的同步方法。</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			
+		</div>
+	</article>
+</main>
+<footer>
+<hr>⚡️
+	2020  © abboo |  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+</footer>
+
+
+</div>
+    </body>
+</html>
