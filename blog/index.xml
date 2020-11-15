@@ -14,7 +14,7 @@
       <pubDate>Sun, 15 Nov 2020 09:51:26 +0800</pubDate>
       
       <guid>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</guid>
-      <description>[toc] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有些地方写</description>
+      <description>[TOC] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有些地方写</description>
     </item>
     
     <item>
