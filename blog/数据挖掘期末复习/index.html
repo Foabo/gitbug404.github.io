@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>数据挖掘期末复习 - 加油吧，打工人！</title><meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta property="og:description" content="" />
+	<meta name="twitter:description" content="" />
+	<meta name="description" content="" />
+	<meta name="description" content="" />
+
+	<meta property="og:title" content="数据挖掘期末复习 | 加油吧，打工人！" />
+	<meta name="twitter:title" content="数据挖掘期末复习 | 加油吧，打工人！" />
+
+	<meta property="og:image" content=""/>
+	<meta itemprop="name" content="数据挖掘期末复习 | 加油吧，打工人！" />
+	<meta name="application-name" content="数据挖掘期末复习 | 加油吧，打工人！" />
+	<meta property="og:site_name" content="" />
+	<meta property="og:title" content="数据挖掘期末复习" />
+<meta property="og:description" content="1. 概要 1.1 为什么要做数据挖掘？ 我们生活在大量数据日积月累的年代。分析这些数据是一种重要需求。数据的爆炸式增长，广泛可用和巨大数量使得我们的时代" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gitbug404.github.io/blog/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="数据挖掘期末复习"/>
+<meta name="twitter:description" content="1. 概要 1.1 为什么要做数据挖掘？ 我们生活在大量数据日积月累的年代。分析这些数据是一种重要需求。数据的爆炸式增长，广泛可用和巨大数量使得我们的时代"/>
+
+	<link href="https://gitbug404.github.io/css/fonts.css" rel="stylesheet">
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://gitbug404.github.io/css/main.css" />
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://gitbug404.github.io/">加油吧，打工人！</a>
+	</div>
+	<nav>
+		
+		<a href="/">home</a>
+		
+		<a href="/blog">blog</a>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">数据挖掘期末复习</h1>
+			<div class="meta">Posted on Jan 1, 0001</div>
+		</div>
+		
+
+		<section class="body">
+			<h2 id="1-概要">1. 概要</h2>
+<h3 id="11-为什么要做数据挖掘">1.1 为什么要做数据挖掘？</h3>
+<p>我们生活在大量数据日积月累的年代。分析这些数据是一种重要需求。数据的爆炸式增长，广泛可用和巨大数量使得我们的时代成为真正的数据时代。急需功能强大和通用的工具，以便从这些海量数据中发现有价值的信息，把这些数据转换成有组织的知识。这种需求导致了数据挖掘的诞生。</p>
+<h3 id="12-数据挖掘需要解决什么问题">1.2 数据挖掘需要解决什么问题</h3>
+<p>分类与回归、聚类、关联规则、时序模式、偏差检测</p>
+<h3 id="13-数据挖掘的主要步骤">1.3 数据挖掘的主要步骤</h3>
+<h2 id="2-数据的概念统计描述可视化距离度量">2. 数据的概念：统计描述、可视化、距离度量</h2>
+<h3 id="21-数据的基本概念">2.1 数据的基本概念</h3>
+<ul>
+<li>
+<p>标称属性（Nominal）：是一些符号或事物的名称。每个值代表某种类别、编码或状态，因此标称属性又被看做是分类的。</p>
+</li>
+<li>
+<p>二元属性（Binary）：是一种标称属性，只有两个类别或状态：0 和 1。</p>
+</li>
+<li>
+<p>序数属性（Ordinal）：其可能的值之间具有有意义的序或秩评定，但是相继值之间的差是未知的。例如小、中、大。</p>
+</li>
+<li>
+<p>数值属性（Numeric）：是定量的，是可度量的量。用整数或实数值表示。</p>
+<ul>
+<li>区间标度属性（interval-scaled）：用相等的单位尺度度量。区间的值有序，可以为正、0、或负；没有真正的零点；可以计算差值、均值、中位数和众数。</li>
+<li>比率标度属性（ratio-scaled）：具有固定零点的数值属性，也就是说一个数可以是另一个数的倍数；此外这些值是有序的，可以计算差值、均值、中位数和众数。</li>
+</ul>
+</li>
+<li>
+<p>离散数学和连续属性：</p>
+<ul>
+<li>离散属性具有有限或无限可数个值，可以用或者不用整数表示。</li>
+<li>如果属性不是离散的，则它是连续的。</li>
+</ul>
+</li>
+</ul>
+<h3 id="22-数据常见的统计特征有哪些-分别是怎么计算">2.2 数据常见的统计特征有哪些 分别是怎么计算</h3>
+<p>基本统计描述有三类</p>
+<ul>
+<li>中心趋势度量：度量数据分布的中部或中心位置。讨论均值、中位数、众数、中列数</li>
+<li>数据的散布：数据分散程度的度量。<strong>极差</strong>、<strong>四分位差</strong>、四分位数极差、盒图、<strong>方差</strong>、<strong>标准差</strong></li>
+<li>基于图形的可视化审视数据：分位数图、分位数-分位数图、直方图、散点图</li>
+</ul>
+<h4 id="中心趋势度量">中心趋势度量</h4>
+<ul>
+<li>
+<p><strong>均值</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmgj6uqly0j30ze0j6wm4.jpg" alt=""></p>
+</li>
+<li>
+<p><strong>中位数</strong></p>
+<p>奇数是中间的数，偶数是中间两个数的和。但是当观测的数量很大，中位数的计算开销就很大，所以我们可以计算中位数的近似值，</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmgnerfi2ij30jc03mwew.jpg" alt=""></p>
+<p>$L_1$ 是中位数的下界，$N$是整个数据集中值的个数，$\sum(freq)_l$是低于中位数区间的所有区间的频率和，$frea_median$是中位数区间的频率，而$width$是中位数区间的宽度。</p>
+</li>
+<li>
+<p><strong>众数（mode）</strong></p>
+<p>集合中出现的最频繁的值。具有一个、两个、三个众数的数据集合分别称为单峰的（unimodal）、双峰的（bimodal）和三峰的（trimodal）。具有两个或多个众数的数据集是多峰的，极端情况下，每个数据只出现一次，则没有众数。</p>
+</li>
+<li>
+<p>中列数</p>
+<p>数据集中最大和最小值的平均值。</p>
+</li>
+</ul>
+<h4 id="度量数据散布">度量数据散布</h4>
+<ul>
+<li>
+<p><strong>极差</strong></p>
+<p>max-min</p>
+</li>
+<li>
+<p><strong>四分位数</strong></p>
+<p>2-分位数是将数据分为两半，小于二分位数的数据最多有1/2，对应于中位数。<strong>四分位数</strong>用3个数据点把数据划分成4个相等的部分。q-分位数将数据分成100个大小相等的连贯集。中位数，四分位数和百分位数是使用最广泛的分位数。</p>
+</li>
+<li>
+<p>四分位数极差（IOR）</p>
+<p>$IQR = Q_3 - Q_1$</p>
+<p>给出被数据中间一半所覆盖的范围</p>
+</li>
+<li>
+<p><strong>五数概括</strong></p>
+<p>min,Q1,中位数(Q2),Q3,max</p>
+</li>
+<li>
+<p>盒图</p>
+<p>盒图体现了五数的概念</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmh6ofoeh1j30n20miq4a.jpg" alt=""></p>
+<p>盒的端点一般在四分位数上，使得盒的长度是四分位数极差IQR；中位数用盒内线标记，盒外两条线（称作胡须）延伸到最小值和最大值。</p>
+</li>
+<li>
+<p><strong>方差和标准差</strong></p>
+<p>方差如下公式</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmh6rtm56pj310c03odgc.jpg" alt=""></p>
+<p>标准差是方差的平方根，是发散性的度量。$\delta$  度量关于均值的发散，仅当选择均值作为中心度量使用。$\delta$越小，整体数据越靠近均值。</p>
+<h4 id="数据的基本统计描述图形显示">数据的基本统计描述图形显示</h4>
+<ul>
+<li>
+<p>分位数图</p>
+<p>对于一个序列数据$X$,设每个观测值$x_i(i = 1，···，N)$是按递增排序的,$x_1$最小，$x_N$最大，每个观测值与一个百分数$f_i$配对，指出<strong>大约</strong> $f_i  $ x  100% 的数据小于$x_i$,这里说大约是因为可能没有一个精确地值$f_i$</p>
+<blockquote>
+<p>百分比0.25对应于四分位数Q1，百分比0.50对应于中位数，百分比0.75对应于Q3</p>
+</blockquote>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmh789j66hj30me0b4abg.jpg" alt=""></p>
+</li>
+<li>
+<p>分位数-分位数图</p>
+</li>
+<li>
+<p>直方图</p>
+</li>
+<li>
+<p>散点图</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="23-怎么度量距离和相似性">2.3 怎么度量距离和相似性</h3>
+<p><em>标称属性和二元属性的邻近性度量</em></p>
+<p><em>数值属性：<strong>Lp</strong>距离</em></p>
+<h4 id="标称属性的近邻性度量">标称属性的近邻性度量</h4>
+<p>标称属性可以取两个或多个状态，设一个标称属性的状态数目为$M$</p>
+<p><strong>相异性</strong></p>
+<p>两个对象i和j之间的相异性可以根据不匹配率计算：
+$$
+d(i,j) =  \frac{p - m} {p}
+$$
+其中 $m$是匹配的数目，即$i$和$j$取值相同的状态的属性数,而 $p$ 是刻画对象的属性总数，由$d(i,j)$可以构造相异性矩阵。</p>
+<p><strong>相似性</strong>
+$$
+sim(i,j) = 1 - d(i,j) = \frac{m}{p}
+$$</p>
+<h4 id="二元属性的近邻性度量">二元属性的近邻性度量</h4>
+<p>考察<em>对称</em>和<em>非对称</em>二元属性刻画的对象间的相异性和相似性度量。</p>
+<p>二元属性只有 0 和 1 的取值。</p>
+<p><strong>相异性</strong></p>
+<p>如果所有的二元被看成具有相同的权重，则我们可以得到一个两行两列的列联表。</p>
+<p>![](/Users/inf/Library/Application Support/typora-user-images/image-20210109101052238.png)</p>
+<blockquote>
+<p>其中 q 是对象 i 和 j 都取 1 的属性数；</p>
+<p>r 是在对象 i 中取 1 、在对象 j 中取 0 的属性数；</p>
+<p>s 是在对象 i 中取 0、 在对象 j 中取 1 的属性数；</p>
+<p>t 是对象 i 和 j 都取 0 的属性数；</p>
+<p>属性总数为 p， p = q + r + s + t</p>
+</blockquote>
+<p>基于对称二元属性的相异性叫做<strong>对称二元相异性</strong>，如果i 和 j是对称的，即它们同样重要，则 i 和 j 的相异性为
+$$
+d(i,j) = \frac{r+s}{q+r+s+t}
+$$
+对于非对称的二元属性，两个状态不是同样重要，认为两个都取1的情况比两个都取0的情况更有意义，这种二元属性经常被认为是（“一元的”）其中负匹配数t被认为是不重要的
+$$
+d(i,j) = \frac{r+s}{q+r+s}
+$$
+类似的，我们可以基于相似性而不是相异性来度量两个二元属性的差别，<strong>非对称的二元相似性</strong>可以用如下公式
+$$
+sim(i,j) = \frac{q}{q+r+s} = 1 - d(i,j)
+$$
+这里的$sim(i,j)$被称作 <strong>Jaccard系数</strong></p>
+<h4 id="数值属性的相异性">数值属性的相异性</h4>
+<p>欧几里得距离、曼哈顿距离、闵可夫斯基距离</p>
+<p><strong>欧几里得距离</strong></p>
+<p>描述对象 i 、 j 之间的欧几里得距离
+$$
+d(i,j) = \sqrt{(x_{i1}-x_{j1})^2+(x_{i2}-x_{j2})^2+&hellip;+(x_{ip}-x_{jp})^2}
+$$</p>
+<p>加权欧式距离
+$$
+d(i,j) = \sqrt{w_1(x_{i1}-x_{j1})^2+w_2(x_{i2}-x_{j2})^2+&hellip;+w_p(x_{ip}-x_{jp})^2}
+$$</p>
+<p><strong>曼哈顿距离</strong>
+$$
+d(i,j) = |x_{i1}-x_{j1}| +|x_{i2}-x_{j2}| + &hellip; + |x_{ip}-x_{jp}|
+$$</p>
+<blockquote>
+<p>欧式距离和曼哈顿距离满足如下数学性质</p>
+<p><strong>非负性：</strong>$d(i,j)&gt;= 0 $ :距离是个非负的数值</p>
+<p><strong>同一性：</strong>$d(i,j) = 0$：对象到自身的距离是0</p>
+<p><strong>对称性：</strong>$d(i,j) = d(j,i)$：距离是对称函数</p>
+<p><strong>三角不等式：</strong> $d(i,j)&lt;= d(i,k)+d(k,j)$：从 i 到 j  的距离不会大于途径任何其他对象 k 的距离</p>
+<p>满足这些条件的测度叫做<strong>度量（metric）</strong></p>
+</blockquote>
+<p><strong>闵可夫斯基距离（Minkowski distance）</strong></p>
+<p>是欧氏距离和曼哈顿距离的推广
+$$
+d(i,j) = \sqrt[h]{|x_{i1}-x_{j1}|^h+|x_{i2}-x_{j2}|^h+&hellip;+|x_{ip}-x_{jp}|^h}
+$$
+其中$h$是实数，$h&gt;=1$,也称作 $L_p$范数，其中的p就是这里的h，只不过这里保留了p作为属性数, p=1时候表示曼哈顿距离（$L_1$范数），p=2表示欧氏距离（$L_2$范数）</p>
+<p>**上确界距离（$L_{max}$,$L_{\infty}$范数和切比舍夫距离）**</p>
+<p>是$h-&gt;\infty$是闵可夫斯基距离的推广
+$$
+d(i,j) = \lim_{h\rightarrow\infty}{(\sum_{f=1}^{p}|x_{if}-x_{jf}|^h)^{\frac{1}{h}}} = \max_f^p{|x_{if}-x_{jf}|}
+$$
+$L_{\infty}$范数又称一致范数</p>
+<blockquote>
+<p>例如，使用相同的数据对象 $x_1 = (1,2)$ 和$x_2 = (3,5)$，这两个对象的最大值差为 5 - 2 = 3.这是两个对象的上确界距离。</p>
+</blockquote>
+<p><strong>余弦相似度</strong>
+$$
+sim(x,y) = \frac{x · y}{||x||\times||y||}
+$$
+其中，$||x||$是向量x的欧几里得范数$$ \sqrt{x_1^2+x_2^2+&hellip;+x_p^2}$$,即向量的长度。该度量机损向量x和y之间家教的余弦，等于0意味着两个向量呈$90^o$夹角（正交），没有匹配。</p>
+<h2 id="3-数据预处理">3. 数据预处理</h2>
+<h3 id="31-为什么要进行数据预处理">3.1 为什么要进行数据预处理</h3>
+<p>不正确、不完整和不一致的数据是现实世界的大型数据库和数据仓库的共同特点。数据预处理正是需要解决这样的数据质量问题。</p>
+<h3 id="32-数据清洗主要解决什么问题">3.2 数据清洗主要解决什么问题</h3>
+<p>现实世界的数据一般是不完整的、有噪声的和不一致的。数据清洗试图填充缺失的值、光滑噪声并识别离群点、纠正数据中的不一致。</p>
+<h3 id="33-数据规约">3.3 数据规约</h3>
+<p>数据规约（data reduction ）技术可以用来得到数据集的规约表示，它小得多，但仍接近于保持数据的完整性。</p>
+<p>数据规约策略包括</p>
+<ul>
+<li>维规约（dimensionality reduction）减少所考虑的随机变量的属性的个数。维规约方法包括小波变换和主成分分析，它们把元数据变换或投影到较小的空间。属性子集选择是一种维规约方法，其中不相关、弱相关或冗余的属性或维被检测和删除。</li>
+<li>数量规约（numerosity reduction）</li>
+<li>数据压缩（data compression）</li>
+</ul>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98">数据挖掘</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+	</article>
+</main>
+<footer>
+<hr>⚡️
+	2021  © abboo |  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+</footer>
+
+
+</div>
+    </body>
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title> - 加油吧，打工人！</title><meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta property="og:description" content="" />
+	<meta name="twitter:description" content="" />
+	<meta name="description" content="" />
+	<meta name="description" content="" />
+
+	<meta property="og:title" content=" | 加油吧，打工人！" />
+	<meta name="twitter:title" content=" | 加油吧，打工人！" />
+
+	<meta property="og:image" content=""/>
+	<meta itemprop="name" content=" | 加油吧，打工人！" />
+	<meta name="application-name" content=" | 加油吧，打工人！" />
+	<meta property="og:site_name" content="" />
+	<meta property="og:title" content="" />
+<meta property="og:description" content="0. 前言 本文内容分为如下三部分 RabbitMQ高级特性 消息可靠性投递 Consumer ACK 消费端限流 TTL 死信队列 延迟队列 日志与监控 消息可靠性分析与追踪 管理 Rabb" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gitbug404.github.io/blog/rabbitmq%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="0. 前言 本文内容分为如下三部分 RabbitMQ高级特性 消息可靠性投递 Consumer ACK 消费端限流 TTL 死信队列 延迟队列 日志与监控 消息可靠性分析与追踪 管理 Rabb"/>
+
+	<link href="https://gitbug404.github.io/css/fonts.css" rel="stylesheet">
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="https://gitbug404.github.io/css/main.css" />
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="https://gitbug404.github.io/">加油吧，打工人！</a>
+	</div>
+	<nav>
+		
+		<a href="/">home</a>
+		
+		<a href="/blog">blog</a>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title"></h1>
+			<div class="meta">Posted on Jan 1, 0001</div>
+		</div>
+		
+
+		<section class="body">
+			<h2 id="0-前言">0. 前言</h2>
+<p>本文内容分为如下三部分
+<strong>RabbitMQ高级特性</strong></p>
+<blockquote>
+<p>消息可靠性投递
+Consumer ACK
+消费端限流
+TTL
+死信队列
+延迟队列
+日志与监控
+消息可靠性分析与追踪
+管理</p>
+</blockquote>
+<p><strong>RabbitMQ应用问题</strong></p>
+<blockquote>
+<p>消息可靠性保障
+消息幂等性处理</p>
+</blockquote>
+<p><strong>RabbitMQ集群搭建</strong></p>
+<blockquote>
+<p>RabbitMQ高可用集群</p>
+</blockquote>
+<h2 id="1-高级特性">1. 高级特性</h2>
+<h3 id="11-消息的可靠投递">1.1 消息的可靠投递</h3>
+<p>在使用 RabbitMQ 的时候，作为消息发送方希望杜绝任何消息丢失或者投递失败场景。RabbitMQ 为我们提供了两种方式用来控制消息的投递可靠性模式。
+<code>confirm 确认模式</code>
+<code>return  退回模式</code></p>
+<p>rabbitmq 整个消息投递的路径为：
+producer&mdash;&gt;rabbitmq broker&mdash;&gt;exchange&mdash;&gt;queue&mdash;&gt;consumer
+消息从 producer 到 exchange 则会返回一个 <code>confirmCallback</code> 。
+消息从 exchange&ndash;&gt;queue 投递失败则会返回一个 <code>returnCallback </code>。
+我们将利用这两个 callback 控制消息的可靠性投递</p>
+<h4 id="confirm模式">confirm模式</h4>
+<p>在上一篇中的最后我们用spring-boot配置了rabbitMQ，
+在这里在原来的基础上继续进行,在生产者的application.yml添加</p>
+<pre><code>使用rabbitTemplate.setConfirmCallback设置回调函数。当消息发送到exchange后回调confirm方法。在方法中判断ack，如果为true，则发送成功，如果为false，则发送失败，需要处理
+#配置RabbitMQ的基本信息 ip 端口 username password
+spring:
+  rabbitmq:
+    host: xxx
+    port: 5672
+    username: root
+    password: root
+    virtual-host: /example
+    #生产端配置
+    #开启发送确认,此配置在Springboot2.3.0版本中已经@Deprecated了，默认就是
+    # publisher-confirms: true
+    #
+    publisher-confirm-type: simple
+    #开启发送失败退回
+    publisher-returns: true
+</code></pre>
+<p>然后新增一个test</p>
+<pre><code>@Test
+    public void testConfirm() {
+        // 1. 设置ConnectionFactory的publisher-confirms=&quot;true&quot; 开启 确认模式。
+
+        // 2. 使用rabbitTemplate.setConfirmCallback设置回调函数。
+        //      当消息发送到exchange后回调confirm方法。
+        //      在方法中判断ack，如果为true，则发送成功，如果为false，则发送失败，需要处理。
+        rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
+            /**
+             *
+             * @param correlationData 相关配置信息
+             * @param ack   exchange交换机 是否成功收到了消息。true 成功，false代表失败
+             * @param cause 失败原因
+             */
+            @Override
+            public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+                System.out.println(&quot;confirm方法被执行了&quot;);
+                if (ack) {
+                    //接收成功
+                    System.out.println(&quot;接收成功消息&quot; + cause);
+                } else {
+                    //接收失败
+                    System.out.println(&quot;接收失败消息&quot; + cause);
+                    //做一些处理，让消息再次发送。
+                }
+            }
+        });
+        // 3. 发生消息
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, &quot;boot.confirm&quot;, &quot;confirm mq hello~~~~~~~~&quot;);
+
+    }
+</code></pre>
+<p>启动测试，结束后控制台成功打印
+<img src="https://upload-images.jianshu.io/upload_images/14301043-5a5e251fb0318680.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>登陆rabbitmq管理后台也可以看到消息已经写入队列中了，只是还没有被消费。
+其中回调函数中 <code>confirm</code>的第一个参数<code>correlationData </code>会在发送消息的函数<code>convertAndSend</code>的重载函数中会使用，这里没有使用这个参数。
+<code>ack</code>比较重要，可以判断交换机是否收到消息
+<code>cause</code>失败原因</p>
+<h4 id="return模式">return模式</h4>
+<p>使用rabbitTemplate.setReturnCallback设置退回函数，当消息从exchange路由到queue失败后，如果设置了rabbitTemplate.setMandatory(true)参数，则会将消息退回给producer。并执行回调函数returnedMessage。</p>
+<p>application.yml添加</p>
+<pre><code>#配置RabbitMQ的基本信息 ip 端口 username password
+spring:
+  rabbitmq:
+    host: asjunor.site
+    port: 5672
+    username: root
+    password: root
+    virtual-host: /example
+    #生产端配置
+    #开启发送确认,此配置在Springboot2.3.0版本中已经@Deprecated了，默认就是
+    # publisher-confirms: true
+    #
+    publisher-confirm-type: simple
+    #开启发送失败退回
+    publisher-returns: true
+    #开启执行return回调
+    template:
+      mandatory: true
+</code></pre>
+<p>编写测试</p>
+<pre><code> /**
+     * 回退模式： 当消息发送给Exchange后，Exchange路由到Queue失败时候才会执行 ReturnCallBack
+     * 步骤：
+     * 1. 开启回退模式:publisher-returns=&quot;true&quot;
+     * 2. 设置ReturnCallBack
+     * 3. 设置Exchange处理消息的模式：
+     *      1. 如果消息没有路由到Queue，则丢弃消息（默认）
+     *      2. 如果消息没有路由到Queue，返回给消息发送方ReturnCallBack
+     */
+    @Test
+    public void testReturn(){
+        // 设置交换机处理失败消息的模式
+        // rabbitTemplate.setMandatory(true);
+        // 2.设置ReturnCallBack
+        rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
+            /**
+             *
+             * @param message   消息对象
+             * @param replyCode 错误码
+             * @param replyText 错误信息
+             * @param exchange  交换机
+             * @param routingKey 路由键
+             */
+            @Override
+            public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
+                System.out.println(&quot;return 被执行了&quot;);
+                System.out.println(message);
+                System.out.println(replyCode);
+                System.out.println(replyText);
+                System.out.println(exchange);
+                System.out.println(routingKey);
+            }
+        });
+        // 3. 发送消息
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, &quot;boott.treturn&quot;, &quot;return mq hello~~~~~~~~&quot;);
+
+    }
+</code></pre>
+<p>控制台打印
+<img src="https://upload-images.jianshu.io/upload_images/14301043-c62c795480a2c42c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>不知道因为什么原因，return回调经常会不打印信息，有待研究</p>
+<p>在RabbitMQ中也提供了事务机制，但是性能较差，此处不做讲解。
+使用channel下列方法，完成事务控制：
+txSelect(), 用于将当前channel设置成transaction模式
+txCommit()，用于提交事务
+txRollback(),用于回滚事务</p>
+<h3 id="12-consumer-ack">1.2 Consumer Ack</h3>
+<p>ack指Acknowledge，确认。 表示消费端收到消息后的确认方式。
+有三种确认方式：</p>
+<ul>
+<li>自动确认：<code>acknowledge=&quot;none&quot;</code></li>
+<li>手动确认：<code>acknowledge=&quot;manual&quot;</code></li>
+<li>根据异常情况确认：<code>acknowledge=&quot;auto&quot;</code>，（这种方式使用麻烦，不作讲解）</li>
+</ul>
+<p>其中自动确认是指，当消息一旦被Consumer接收到，则自动确认收到，并将相应 message 从 RabbitMQ 的消息缓存中移除。但是在实际业务处理中，很可能消息接收到，业务处理出现异常，那么该消息就会丢失。如果设置了手动确认方式，则需要在业务处理成功后，调用<code>channel.basicAck()</code>，手动签收，如果出现异常，则调用<code>channel.basicNack()</code>方法，让其自动重新发送消息。</p>
+<h4 id="配置consumer的监听器">配置consumer的监听器</h4>
+<p>对于消费者，配置application.yml为</p>
+<pre><code>#配置RabbitMQ的基本信息 ip 端口 username password
+spring:
+  rabbitmq:
+    host: asjunor.site
+    port: 5672
+    username: root
+    password: root
+    virtual-host: /example
+    listener:
+      direct:
+        acknowledge-mode: manual
+      simple:
+        acknowledge-mode: manual
+</code></pre>
+<p>我们在原来RabbitMQListener上修改
+新建一个监听器ackListener</p>
+<pre><code>@Component
+@RabbitListener(queues = &quot;boot_queue&quot;)
+public class AckListener  {
+    @RabbitHandler
+    public void process(String hello,Channel channel, Message message) throws IOException, InterruptedException {
+        Thread.sleep(1000);
+        long deliveryTag = message.getMessageProperties().getDeliveryTag();
+        try {
+            // 1. 接受转换消息
+            System.out.println(&quot;ackListener收到的消息为：&quot; + new String(message.getBody()));
+
+            // 2. 处理业务逻辑
+            System.out.println(&quot;处理业务逻辑&quot;);
+            int i =3/0;
+            // 3. 手动签收
+            channel.basicAck(deliveryTag,true);
+        }
+        catch (Exception e){
+            // 4. 拒绝签收
+            /*
+            第三个参数：requeue：重回队列。如果设置为true，则消息重新回到queue，broker会重新发送该消息给消费端
+             */
+            channel.basicNack(deliveryTag,true,true);
+//            channel.basicReject(deliveryTag,true); 单条数据
+           
+        }
+            //消息的标识，false只确认当前一个消息收到，true确认所有consumer获得的消息
+            //channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            //ack返回false，并重新回到队列，api里面解释得很清楚
+            //channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            //拒绝消息
+            //channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+
+    }
+}
+
+</code></pre>
+<p>@RabbitListener 可以标注在类上面，需配合 @RabbitHandler 注解一起使用
+@RabbitListener 标注在类上面表示当有收到消息的时候，就交给 @RabbitHandler 的方法处理，具体使用哪个方法处理，根据 MessageConverter 转换后的参数类型</p>
+<p>设置acknowledge属性，设置ack方式 none：自动确认，manual：手动确认</p>
+<p>如果在消费端没有出现异常，则调用channel.basicAck(deliveryTag,false);方法确认签收消息，签收成功，消息就被消费了。</p>
+<p>如果出现异常，则在catch中调用 basicNack或 basicReject，拒绝消息，让MQ重新发送消息。</p>
+<h3 id="消息可靠性小结">消息可靠性小结</h3>
+<ol>
+<li>持久化
+<ul>
+<li>exchange要持久化</li>
+<li>queue要持久化</li>
+<li>message要持久化</li>
+</ul>
+</li>
+<li>生产方确认Confirm</li>
+<li>消费方确认Ack</li>
+<li>Broker高可用，后面集群会讲到</li>
+</ol>
+<h3 id="14-消费端限流">1.4 消费端限流</h3>
+<p>回顾一下这个图，我们说过MQ有个很重要的作用就是削峰填谷
+<img src="https://upload-images.jianshu.io/upload_images/14301043-d62992296d51bd72.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">
+接下来就学习如何实现限流
+新建一个QosListener,这时候要把之前的AckListener注释掉，
+修改application.yml</p>
+<pre><code>#配置RabbitMQ的基本信息 ip 端口 username password
+spring:
+  rabbitmq:
+    host: asjunor.site
+    port: 5672
+    username: root
+    password: root
+    virtual-host: /example
+    listener:
+      direct:
+        acknowledge-mode: manual
+        #每次限流1条消息
+        prefetch: 1
+      simple:
+        acknowledge-mode: manual
+        prefetch: 1
+</code></pre>
+<p>其中新增了perfetch = 1,表示消费端每次从mq拉去一条消息来消费，直到手动确认消费完毕后，才会继续拉去下一条消息。</p>
+<pre><code>/**
+ * Consumer 限流机制
+ * 1. 确保ack机制为手动确认。
+ * 2. listener-container配置属性
+ * perfetch = 1,表示消费端每次从mq拉去一条消息来消费，直到手动确认消费完毕后，才会继续拉去下一条消息。
+ */
+@Component
+@RabbitListener(queues = &quot;boot_queue&quot;)
+public class QosListener {
+    @RabbitHandler
+    public void process(String hello, Channel channel, Message message) throws IOException, InterruptedException {
+        Thread.sleep(1000);
+        //1.获取消息
+        System.out.println(&quot;Qos:&quot;+new String(message.getBody()));
+
+        //2. 处理业务逻辑
+
+        //3. 签收
+//        channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+    }
+}
+</code></pre>
+<p>在这里我们把最后一行 <code>channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);</code>注释掉
+启动消费者
+发现只打印了一次
+<img src="https://upload-images.jianshu.io/upload_images/14301043-7a1aac668833596e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h4 id="小结">小结</h4>
+<p>配置 prefetch属性设置消费端一次拉取多少消息</p>
+<p>消费端的确认模式一定为手动确认。acknowledge=&ldquo;manual&rdquo;</p>
+<h3 id="14--ttl">1.4  TTL</h3>
+<p>TTL 全称 Time To Live（存活时间/过期时间）。</p>
+<p>当消息到达存活时间后，还没有被消费，会被自动清除。</p>
+<p>RabbitMQ可以对消息设置过期时间，也可以对整个队列（Queue）设置过期时间。
+比如我们有个订单系统，下订单时候如果30分钟内未被支付，那么这条消息就失效了。
+<img src="https://upload-images.jianshu.io/upload_images/14301043-d2e7b05a8a757069.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h4 id="控制台测试">控制台测试</h4>
+<p>打开我们的控制台，新建队列的时候可以看到最下面的arguments,我们先设置一个message ttl为10秒
+<img src="https://upload-images.jianshu.io/upload_images/14301043-0a6f9923106bdab0.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">
+再创建一个交换机
+<img src="https://upload-images.jianshu.io/upload_images/14301043-246e08bc3fa8da29.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">
+将交换机和队列绑定
+<img src="https://upload-images.jianshu.io/upload_images/14301043-4aee030314ad8ff3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">
+再在这个页面下面手动发消息
+<img src="https://upload-images.jianshu.io/upload_images/14301043-0d4f039bf9cd638c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">
+十秒钟这个消息就会消失</p>
+<h4 id="编写代码测试">编写代码测试</h4>
+<p>删除在控制台创建的交换机和对垒
+producer端新增一个TTLConfig</p>
+<pre><code>@Configuration
+public class TTLConfig {
+
+    public static final String EXCHANGE_NAME = &quot;test_exchange_ttl&quot;;
+    public static final String QUEUE_NAME = &quot;test_queue_ttl&quot;;
+
+    //1.交换机
+    @Bean(&quot;ttlExchange&quot;)
+    public Exchange ttlExchange(){
+        return ExchangeBuilder.topicExchange(EXCHANGE_NAME).durable(true).build();
+    }
+
+
+    //2.Queue 队列
+    @Bean(&quot;ttlQueue&quot;)
+    public Queue ttlQueue(){
+        return QueueBuilder.durable(QUEUE_NAME).ttl(20000).build();
+    }
+
+    //3. 队列和交互机绑定关系 Binding
+    /*
+        1. 知道哪个队列
+        2. 知道哪个交换机
+        3. routing key
+     */
+    @Bean
+    public Binding bindTTLQueueExchange(@Qualifier(&quot;ttlQueue&quot;) Queue queue, @Qualifier(&quot;ttlExchange&quot;) Exchange exchange){
+        return BindingBuilder.bind(queue).to(exchange).with(&quot;ttl.#&quot;).noargs();
+    }
+
+}
+</code></pre>
+<p>之后运行测试文件就能创建exchange和queue,其中创建队列时候设置了参数ttl为20秒，指队列的过期时间。
+再编写测试函数</p>
+<pre><code>/**
+     * TTL:过期时间
+     *  1. 队列统一过期
+     *
+     *  2. 消息单独过期
+     *
+     *
+     * 如果设置了消息的过期时间，也设置了队列的过期时间，它以时间短的为准。
+     * 队列过期后，会将队列所有消息全部移除。
+     * 消息过期后，只有消息在队列顶端，才会判断其是否过期(移除掉)
+     *
+     */
+    @Test
+    public void testTTL() {
+        // 消息后处理对象，设置一些消息的参数信息
+        MessagePostProcessor messagePostProcessor = new MessagePostProcessor(){
+
+            /**
+             * Change (or replace) the message.
+             *
+             * @param message the message.
+             * @return the message.
+             * @throws AmqpException an exception.
+             */
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                //1.设置message的信息
+                message.getMessageProperties().setExpiration(&quot;10000&quot;);//消息的过期时间
+                //2.返回该消息
+                return message;
+            }
+        };
+
+
+     
+        //消息单独过期
+        //rabbitTemplate.convertAndSend(&quot;test_exchange_ttl&quot;, &quot;ttl.hehe&quot;, &quot;message ttl....&quot;,messagePostProcessor);
+
+
+        for (int i = 0; i &lt; 10; i++) {
+            if(i == 5){
+                //消息单独过期
+                rabbitTemplate.convertAndSend(&quot;test_exchange_ttl&quot;, &quot;ttl.hehe&quot;, &quot;message ttl....&quot;,messagePostProcessor);
+            }else{
+                //不过期的消息
+                rabbitTemplate.convertAndSend(&quot;test_exchange_ttl&quot;, &quot;ttl.hehe&quot;, &quot;message ttl....&quot;);
+
+            }
+
+        }
+    }
+
+</code></pre>
+<p>在这里，其实消息不会看到它过期了，因为5不是在队列的头部，只有在队列头部的才会被移除掉。</p>
+<h4 id="小结-1">小结</h4>
+<p>设置队列过期时间使用参数：x-message-ttl，单位：ms(毫秒)，会对整个队列消息统一过期。</p>
+<p>设置消息过期时间使用参数：expiration。单位：ms(毫秒)，当该消息在队列头部时（消费时），会单独判断这一消息是否过期。</p>
+<p>如果两者都进行了设置，以时间短的为准。</p>
+<h3 id="15-死信队列">1.5 死信队列</h3>
+<p>死信队列，英文缩写：DLX  。Dead Letter Exchange（死信交换机），当消息成为Dead message后，可以被重新发送到另一个交换机，这个交换机就是DLX。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/14301043-20f8d2da6e29573f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>在前面的ttl例子中，当我们的消息过期后，会被丢弃，但如果这个队列绑定了死信交换机，则消息不会被丢弃，而是发送到死信交换机，而死信交换机又可以绑定其他队列，从而可以重新被消费者消费。</p>
+<p>考虑两个问题：</p>
+<ul>
+<li>第一个队列如何绑定死信交换机？</li>
+<li>消息什么时候成为死信</li>
+</ul>
+<h4 id="消息成为死信的三种情况">消息成为死信的三种情况</h4>
+<ol>
+<li>
+<p>队列消息长度到达限制；</p>
+</li>
+<li>
+<p>消费者拒接消费消息，basicNack/basicReject,并且不把消息重新放入原目标队列,requeue=false；</p>
+</li>
+<li>
+<p>原队列存在消息过期设置，消息到达超时时间未被消费；</p>
+</li>
+</ol>
+<blockquote>
+<p>tip：
+死信交换机和死信队列和正常的交换机和队列没有任何区别</p>
+</blockquote>
+<ol>
+<li>声明正常的队列(redirect_queue)和交换机(redirect_exchange)</li>
+<li>声明死信队列(dlx_queue)和死信交换机(dlx_exchange)</li>
+<li>正常队列绑定死信交换机
+设置两个参数：
+<ul>
+<li>x-dead-letter-exchange：死信交换机名称</li>
+<li>x-dead-letter-routing-key：发送给死信交换机的routingkey</li>
+</ul>
+</li>
+</ol>
+<p>修改application.yml</p>
+<pre><code>#配置RabbitMQ的基本信息 ip 端口 username password
+spring:
+  rabbitmq:
+    host: asjunor.site
+    port: 5672
+    username: root
+    password: root
+    virtual-host: /example
+    #生产端配置
+    #开启发送确认,此配置在Springboot2.3.0版本中已经@Deprecated了，默认就是
+    # publisher-confirms: true
+    #
+    publisher-confirm-type: simple
+    #开启发送失败退回
+    publisher-returns: true
+    #开启执行return回调
+    template:
+      mandatory: true
+      retry:
+        # 允许消息消费失败的重试
+        enabled: true
+        # 消息最多消费次数3次
+        max-attempts: 3
+        # 消息多次消费的间隔1秒
+        initial-interval: 1000
+    listener:
+      direct:
+        #  设置为false，会丢弃消息或者重新发布到死信队列
+        default-requeue-rejected: false
+</code></pre>
+<p>编写DeadLetterConfig</p>
+<pre><code>package org.example.rabbitmq.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @ClassName DeadLetterConfig
+ * @Description TODO
+ * @Author Patrick Star
+ * @Date 2020/12/7 9:37 下午
+ */
+@Configuration
+public class DeadLetterConfig {
+    public static final String DL_EXCHANGE = &quot;dl_exchange&quot;;
+
+    public static final String DL_QUEUE = &quot;dl_queue&quot;;
+    public static final String REDIRECT_QUEUE = &quot;redirect_queue&quot;;
+    public static final String REDIRECT_EXCHANGE = &quot;redirect_exchange&quot;;
+    public static final String DL_REDIRECT_ROUTING_KEY = &quot;dlx.hehe&quot;;
+
+
+    /**
+     * 死信队列跟交换机类型没有关系 不一定为directExchange  不影响该类型交换机的特性.
+     */
+    @Bean(&quot;dlExchange&quot;)
+    public Exchange deadLetterExchange() {
+        return ExchangeBuilder.topicExchange(DL_EXCHANGE).durable(true).build();
+    }
+
+    @Bean(&quot;dlQueue&quot;)
+    public Queue deadLetterQueue() {
+        // 设置正常队列的长度限制和ttl
+        return QueueBuilder.durable(DL_QUEUE).build();
+    }
+
+    @Bean(&quot;redirectQueue&quot;)
+    public Queue redirectQueue() {
+        Map&lt;String, Object&gt; args = new HashMap&lt;&gt;(2);
+//       x-dead-letter-exchange    声明  死信队列Exchange
+        args.put(&quot;x-dead-letter-exchange&quot;, DL_EXCHANGE);
+//       x-dead-letter-routing-key    声明 死信队列抛出异常重定向队列的routingKey(&quot;dlx.hehe&quot;)
+        args.put(&quot;x-dead-letter-routing-key&quot;, DL_REDIRECT_ROUTING_KEY);
+        args.put(&quot;x-message-ttl&quot;, 10000);
+        args.put(&quot;x-max-length&quot;, 10);
+        return QueueBuilder.durable(REDIRECT_QUEUE).withArguments(args).build();
+    }
+
+    //1.交换机
+    @Bean(&quot;redirectExchange&quot;)
+    public Exchange redirectExchange() {
+        return ExchangeBuilder.topicExchange(REDIRECT_EXCHANGE).durable(true).build();
+    }
+
+
+    /**
+     * 死信队列绑定到死信交换器上.
+     *
+     * @return the binding
+     */
+    @Bean
+    public Binding dlxBinding(Queue dlQueue, Exchange dlExchange) {
+        return BindingBuilder
+                .bind(dlQueue)
+                .to(dlExchange)
+                .with(&quot;dlx.#&quot;)
+                .noargs();
+
+    }
+
+    /**
+     * 将重定向队列通过routingKey(“dlx.hehe”)绑定到死信队列的Exchange上
+     *
+     * @return the binding
+     */
+    @Bean
+    public Binding redirectToDLBinding(@Qualifier(&quot;redirectQueue&quot;) Queue queue, @Qualifier(&quot;dlExchange&quot;) Exchange exchange) {
+        return BindingBuilder
+                .bind(queue)
+                .to(exchange)
+                .with(DL_REDIRECT_ROUTING_KEY)
+                .noargs();
+
+    }
+
+    /**
+     * 绑定正常的交换机和队列
+     *
+     * @return the binding
+     */
+    @Bean
+    public Binding redirectBinding() {
+        return BindingBuilder
+                .bind(redirectQueue())
+                .to(redirectExchange())
+                .with(&quot;test.dlx.#&quot;)
+                .noargs();
+
+    }
+}
+
+
+</code></pre>
+<p>其中分别使用了几种方法来绑定队列，在Binding函数中</p>
+<ol>
+<li>我们可以直接写队列的函数和交换机的函数，如最后一个</li>
+<li>我们可以用@Qualifier注解指定队列和交换机，如倒数第二个</li>
+<li>我们可以在传递参数时，将参数名字和定义的队列和交换机匹配</li>
+</ol>
+<p>对消息产生死信的三种情况进行测试</p>
+<pre><code>  /**
+     * 发送测试死信消息：
+     *  1. 过期时间
+     *  2. 长度限制
+     *  3. 消息拒收
+     */
+    @Test
+    public void testDlx(){
+        //1. 测试过期时间，死信消息
+        rabbitTemplate.convertAndSend(DeadLetterConfig.REDIRECT_EXCHANGE,&quot;test.dlx.hehe&quot;,&quot;我是一条消息，我会死吗？&quot;);
+
+        //2. 测试长度限制后，消息死信
+       /* for (int i = 0; i &lt; 20; i++) {
+            rabbitTemplate.convertAndSend(DeadLetterConfig.REDIRECT_EXCHANGE,&quot;test.dlx.haha&quot;,&quot;我是一条消息，我会死吗？&quot;);
+        }*/
+
+        //3. 测试消息拒收
+//        rabbitTemplate.convertAndSend(DeadLetterConfig.REDIRECT_EXCHANGE,&quot;test.dlx.haha&quot;,&quot;我是一条消息，我会死吗？&quot;);
+
+    }
+</code></pre>
+<p>对第一种情况，消息过期后会自动转到死信队列
+对第二种情况，消息长度超过了限制，超过的会自动转到死信队列
+对第三种情况，我们要编写一个消费者来监听正常的队列，让消息拒绝接收</p>
+<p>新建一个DlxListener，注意，这里是监听我们的正常队列，而不是死信队列</p>
+<pre><code>@Component
+@RabbitListener(queues = &quot;redirect_queue&quot;)
+public class DlxListener {
+    @RabbitHandler
+    public void process(String hello, Channel channel, Message message) throws IOException, InterruptedException {
+        Thread.sleep(1000);
+        long deliveryTag = message.getMessageProperties().getDeliveryTag();
+        try {
+            // 1. 接受转换消息
+            System.out.println(&quot;DlxListener收到的消息为：&quot; + new String(message.getBody()));
+
+            // 2. 处理业务逻辑
+            System.out.println(&quot;处理业务逻辑&quot;);
+            int i = 3 / 0;
+            // 3. 手动签收
+            channel.basicAck(deliveryTag, true);
+        } catch (Exception e) {
+
+            /*
+            第三个参数：requeue：重回队列。如果设置为true，则消息重新回到queue，broker会重新发送该消息给消费端
+             */
+            System.out.println(&quot;出现异常，拒绝接收&quot;);
+
+            // 4. 拒绝签收，不重回队列 requeue = false
+            channel.basicNack(deliveryTag, true, false);
+//            channel.basicReject(deliveryTag,true); 单条数据
+
+            //消息的标识，false只确认当前一个消息收到，true确认所有consumer获得的消息
+            //channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            //ack返回false，并重新回到队列，api里面解释得很清楚
+            //channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            //拒绝消息
+            //channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+        }
+
+
+    }
+
+
+}
+
+</code></pre>
+<p>之后运行Consumer，将test的第三个注释打开，进行测试，控制台打印
+<img src="https://upload-images.jianshu.io/upload_images/14301043-560cc737e807a482.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h4 id="小结-2">小结</h4>
+<ol>
+<li>
+<p>死信交换机和死信队列和普通的没有区别</p>
+</li>
+<li>
+<p>当消息成为死信后，如果该队列绑定了死信交换机，则消息会被死信交换机重新路由到死信队列</p>
+</li>
+<li>
+<p>消息成为死信的三种情况：</p>
+<ol>
+<li>队列消息长度到达限制；</li>
+<li>消费者拒接消费消息，并且不重回队列；</li>
+<li>原队列存在消息过期设置，消息到达超时时间未被消费；</li>
+</ol>
+</li>
+</ol>
+<h3 id="16-延迟队列">1.6 延迟队列</h3>
+<p>延迟队列，即消息进入队列后不会立即被消费，只有到达指定时间后，才会被消费。</p>
+<p>应用场景有：
+比如用户下单后，30分钟未支付，取消订单，回滚库存。再比如新用户注册成功7天后，发送短信问候。</p>
+<p>实现方式：
+1. 定时器
+2. 延迟队列</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/14301043-6fe40b6ce8e2d773.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>但是很可惜，在RabbitMQ中并未提供延迟队列功能。</p>
+<p>但是可以使用：TTL+死信队列 组合实现延迟队列的效果</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/14301043-ad77b8ebc0ecdf70.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png">
+对原来的</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			
+		</div>
+	</article>
+</main>
+<footer>
+<hr>⚡️
+	2021  © abboo |  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+</footer>
+
+
+</div>
+    </body>
+</html>

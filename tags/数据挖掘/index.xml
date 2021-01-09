@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>数据挖掘 on 加油吧，打工人！</title>
+    <link>https://gitbug404.github.io/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/</link>
+    <description>Recent content in 数据挖掘 on 加油吧，打工人！</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© abboo</copyright><atom:link href="https://gitbug404.github.io/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>数据挖掘期末复习</title>
+      <link>https://gitbug404.github.io/blog/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://gitbug404.github.io/blog/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/</guid>
+      <description>1. 概要 1.1 为什么要做数据挖掘？ 我们生活在大量数据日积月累的年代。分析这些数据是一种重要需求。数据的爆炸式增长，广泛可用和巨大数量使得我们的时代</description>
+    </item>
+    
+  </channel>
+</rss>

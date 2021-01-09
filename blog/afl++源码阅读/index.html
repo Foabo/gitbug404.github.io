@@ -155,11 +155,11 @@ A -&gt; B -&gt; D -&gt; C -&gt; E (tuples: AB, BD, DC, CE)
 </blockquote>
 <p>afl通过输入文件的突变产生新路径(新tuples),当一个变异的输入产生了一个包含<strong>新tuple的执行路径</strong>时，对应的输入文件就被<strong>保存</strong>，这种变异测试用例会被加入到输入队列(input queue)中，当做下一次fuzz的起点。对于那些<strong>没有产生新路径的输入</strong>，就算他们的路径是不同的，也会被<strong>抛弃</strong>掉。</p>
 <p>考虑下面两个路径,第二个路径出现了新的tuples(CA, AE):</p>
-<pre><code class="language-html">#1: A -&gt; B -&gt; C -&gt; D -&gt; E
+<pre><code>#1: A -&gt; B -&gt; C -&gt; D -&gt; E
 #2: A -&gt; B -&gt; C -&gt; A -&gt; E
 </code></pre>
 <p>再来看一条路径# 3</p>
-<pre><code class="language-html">#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
+<pre><code>#3: A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; A -&gt; B -&gt; C -&gt; D -&gt; E
 </code></pre>
 <p>因为#2的关系，尽管整体上看这条执行路径非常不同，但认为他们是同一条路径</p>
 <p>因为只出现了AB BC CD DE CA AE这几个tuple。</p>
@@ -327,7 +327,7 @@ R(x)的定义是(random() % (x))，所以R(MAP_SIZE)即为0到MAP_SIZE之间的�
 </main>
 <footer>
 <hr>⚡️
-	2020  © abboo |  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+	2021  © abboo |  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
 </footer>
 
 

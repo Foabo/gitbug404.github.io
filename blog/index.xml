@@ -14,7 +14,7 @@
       <pubDate>Sun, 15 Nov 2020 09:51:26 +0800</pubDate>
       
       <guid>https://gitbug404.github.io/blog/the-go-memory-model%E7%BF%BB%E8%AF%91%E5%8F%8A%E7%90%86%E8%A7%A3/</guid>
-      <description>[TOC] 前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有些地方写</description>
+      <description>前言 最近看mit6.824，里面第五节课有推荐看The Go Memory Model这篇文章 网上翻译也有一些，但是还是觉得不合自己口味，而且本身有些地方写的</description>
     </item>
     
     <item>
@@ -24,6 +24,24 @@
       
       <guid>https://gitbug404.github.io/blog/afl&#43;&#43;%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</guid>
       <description>前言 模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究人员发现漏洞的首选技术。AFL、LibFuzzer、</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://gitbug404.github.io/blog/rabbitmq%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://gitbug404.github.io/blog/rabbitmq%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/</guid>
+      <description>0. 前言 本文内容分为如下三部分 RabbitMQ高级特性 消息可靠性投递 Consumer ACK 消费端限流 TTL 死信队列 延迟队列 日志与监控 消息可靠性分析与追踪 管理 Rabb</description>
+    </item>
+    
+    <item>
+      <title>数据挖掘期末复习</title>
+      <link>https://gitbug404.github.io/blog/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://gitbug404.github.io/blog/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/</guid>
+      <description>1. 概要 1.1 为什么要做数据挖掘？ 我们生活在大量数据日积月累的年代。分析这些数据是一种重要需求。数据的爆炸式增长，广泛可用和巨大数量使得我们的时代</description>
     </item>
     
   </channel>
